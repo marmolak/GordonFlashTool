@@ -32,31 +32,31 @@ enum RET_CODES
 
 /* Common parts */
 
-#define SAFE_CLOSE(fd) do { 				\
-	if (fd != -1) {							\
-		close(fd);							\
-		fd = -1;							\
-	}										\
+#define SAFE_CLOSE(fd) do { \
+    if (fd != -1) {         \
+        close(fd);          \
+        fd = -1;            \
+    }                       \
 } while(0)
 
-#define CHECK_ERROR_GENERIC(f, t, e) ({		\
-	typeof(t) rc = (f); 					\
-	if (rc == -1) {							\
-		perror(__func__);					\
-		exit((e));							\
-	}										\
-	rc;										\
+#define CHECK_ERROR_GENERIC(f, t, e) ({ \
+    typeof(t) rc = (f);                 \
+    if (rc == -1) {                     \
+        perror(__func__);               \
+        exit((e));                      \
+    }                                   \
+    rc;                                 \
 })
 
 #define CHECK_ERROR(f, e) CHECK_ERROR_GENERIC(f, int, e)
 
-#define CHECK_ERROR_P(f, e) ({ 				\
-	void *rc_p = (f); 						\
-	if (rc_p == NULL) {						\
-		perror(__func__);					\
-		exit((e));							\
-	}										\
-	rc_p;									\
+#define CHECK_ERROR_P(f, e) ({  \
+    void *rc_p = (f);           \
+    if (rc_p == NULL) {         \
+        perror(__func__);       \
+        exit((e));              \
+    }                           \
+    rc_p;                       \
 })	
 
 /* Compatibility layer */
@@ -99,7 +99,7 @@ void blkgetsize(int fd, uint64_t *psize)
 #elif BLKGETSIZE
 	unsigned long sectors = 0;
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE, &sectors), 7);
-  	*psize = sectors * 512ULL;
+	*psize = sectors * 512ULL;
 #else
 # error "Linux configuration error (blkgetsize)"
 #endif
