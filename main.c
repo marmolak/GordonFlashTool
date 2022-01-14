@@ -111,9 +111,15 @@ void blkgetsize(int fd, uint64_t *psize)
 
 static NONNULLARGS void safe_close(int *fd)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#pragma GCC diagnostic ignored "-Wnonnull-compare"
+#pragma GCC diagnostic ignored "-Wtautological-pointer-compare"
 	if (fd == NULL) { 
 		return;
 	}
+#pragma GCC diagnostic pop
 
 	if (*fd != -1) {
 		close(*fd);
