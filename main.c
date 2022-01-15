@@ -89,14 +89,14 @@ static bool parse_fat(const int fd, const unsigned int slot)
 	if (bswap_32(magic_mark) != FAT_MAGIC_1 &&
 		bswap_32(magic_mark) != FAT_MAGIC_2
 	) {
-		printf("NO FAT MAGIC FOUND");
+		printf("'NO FAT MAGIC FOUND'");
 		return false;
 	}
 
 	CHECK_ERROR_GENERIC(read(fd, &label, sizeof(label) / sizeof(label[0]) - 1), ssize_t, FAIL_READ);
 	label[7] = '\0';
 
-	printf("%s", label);
+	printf("'%s'", label);
 	return true;
 }
 
@@ -133,12 +133,12 @@ int main(int argc, char **argv)
 	for (unsigned int slot = 0; slot < num_of_fdds; ++slot)
 	{
 		const uint64_t offset = slot * MAGIC_OFFSET;
-		printf(UINT64_PRINTF_FORMAT " - ", offset);
+		printf("0x" UINT64_PRINTF_FORMAT " ", offset);
 
 		CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
 		parse_fat(fd, slot);
 
-		printf(" - ");
+		printf(" ");
 
 		/* There is small (98304 bytes) gap among images, so let's use it to metadata */
 		CHECK_ERROR_GENERIC(lseek(fd, offset + IMAGE_SIZE, SEEK_SET), off_t, FAIL_LSEEK);
