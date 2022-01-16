@@ -1,4 +1,4 @@
-CFLAGS = -std=gnu99 -Wall -Wextra -pedantic -Wno-gnu-statement-expression
+CFLAGS = -std=gnu99 -Wall -Wextra
 objects = metadata.o
 
 DEBUG_FLAGS = -O0 -ggdb3
