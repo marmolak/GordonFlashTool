@@ -1,5 +1,16 @@
-all: metadata.o
-	$(CC) -std=gnu99 -DNDEBUG -Wall -Wextra -o gordon metadata.c main.c
+CFLAGS = -std=gnu99 -Wall -Wextra
+objects = metadata.o
 
-debug: metadata.o
-	$(CC) -std=gnu99 -O0 -ggdb3 -Wall -Wextra -o gordon metadata.c main.c
+DEBUG_FLAGS = -O0 -ggdb3
+
+ifeq '' '$(findstring clang,$(CC))'
+	DEBUG_FLAGS += -fsanitize=undefined
+endif
+
+.PHONY: all
+all: $(objects)
+	$(CC) $(CFLAGS) -o gordon metadata.o main.c
+
+.PHONY: debug
+debug: $(objects)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -o gordon metadata.o main.c
