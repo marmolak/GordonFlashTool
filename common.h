@@ -3,6 +3,15 @@
 
 #include <stdlib.h>
 
+
+#define MAGIC_OFFSET 1572864u
+#define IMAGE_SIZE 1474560u
+#define LABEL_OFFSET 3u
+#define IMAGES_GAP 98304
+#define FAT_MAGIC_1 0xEB3C9000u
+#define FAT_MAGIC_2 0xEB3E9000u
+#define GOTEK_MAX_FDDS 1000u
+
 #define NONNULLARGS __attribute__((nonnull)) 
 
 enum RET_CODES
@@ -11,15 +20,10 @@ enum RET_CODES
 	FAIL_OPEN = 2,
 	FAIL_LSEEK = 10,
 	FAIL_READ = 11,
+    FAIL_WRITE = 12,
+    FAIL_CLOSE = 13,
 	FAIL_IOCTL = 20,
 };
-
-#define SAFE_CLOSE(fd) do { \
-    if (fd != -1) {         \
-        close(fd);          \
-        fd = -1;            \
-    }                       \
-} while(0)
 
 #define CHECK_ERROR_GENERIC(f, t, e) ({ \
     __typeof__(t) rc = (f);             \

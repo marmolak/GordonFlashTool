@@ -1,13 +1,8 @@
 #define _LARGEFILE64_SOURCE
 #define _DARWIN_USE_64_BIT_INODE
 
-#define MAGIC_OFFSET 1572864u
-#define IMAGE_SIZE 1474560u
-#define LABEL_OFFSET 3u
-#define FAT_MAGIC_1 0xEB3C9000u
-#define FAT_MAGIC_2 0xEB3E9000u
-#define GOTEK_MAX_FDDS 1000u
-
+#include <errno.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <stdbool.h>
@@ -20,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "common.h"
 #include "metadata.h"
@@ -69,12 +65,12 @@ static void safe_close(int *const fd)
 	}
 
 	if (*fd != -1) {
-		close(*fd);
+		CHECK_ERROR(close(*fd), FAIL_CLOSE);
 		*fd = -1;
 	}
 }
 
-static bool parse_fat(const int fd, const unsigned int slot)
+static bool parse_fat(const int fd)
 {
 	char label[8];
 	uint32_t magic_mark;
@@ -95,19 +91,80 @@ static bool parse_fat(const int fd, const unsigned int slot)
 	return true;
 }
 
+static void parse_slot(const int fd, unsigned int slot)
+{
+	const uint64_t offset = slot * MAGIC_OFFSET;
+	printf("%3u - 0x" UINT64_PRINTF_FORMAT " ", slot, offset);
+
+	CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
+	parse_fat(fd);
+
+	printf(" ");
+
+	/* There is small (98304 bytes) gap among images, so let's use it for metadata */
+	CHECK_ERROR_GENERIC(lseek(fd, offset + IMAGE_SIZE, SEEK_SET), off_t, FAIL_LSEEK);
+	metadata_parse(fd);
+	printf("\n");
+}
+
+static __attribute__((noreturn)) void usage_exit(void) 
+{
+	fprintf(stderr, "Usage: gordon [-d image_file|drive] [-s slot] [-l]\n");
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char **argv)
 {
+	int opt;
+	char *image_name_a = NULL;
+	unsigned int slot = UINT_MAX;
+	bool write_mode = false;
+	char *metadata_short_label = NULL;
+
 	int fd __attribute__ ((__cleanup__(safe_close))) = -1;
+
+	int open_flags;
 	uint64_t fd_size = 0;
 	struct stat fstat_buf;
 	unsigned int potential_num_of_drives;
 	unsigned int num_of_fdds = GOTEK_MAX_FDDS;
 
-	if (argc < 2 || argv[1] == NULL) {
-		return FAIL_ARGS;	
+	/* -d - drive
+	   -s - slot
+	*/
+
+	while ((opt = getopt(argc, argv, "s:d:w:")) != -1) {
+		switch (opt) {
+		case 'w':
+			write_mode = true;
+			metadata_short_label = optarg;
+			break;
+		case 'd':
+			image_name_a = optarg;
+			break;
+		case 's': {
+			char *endptr = NULL;
+			errno = 0;
+			slot = (unsigned int) strtoul(optarg, &endptr, 10);
+			if (errno != 0 || *endptr != '\0') {
+				usage_exit();
+			}
+			break;
+		}
+		default: /* '?' */
+			usage_exit();
+		}
 	}
 
-	fd = CHECK_ERROR(open(argv[1], O_RDONLY | O_CLOEXEC | ADDITIONAL_OPEN_FLAGS), FAIL_OPEN);
+	if (image_name_a == NULL)
+	{
+		fprintf(stderr, "You needd to provide at least disk/image file with -d disk|image file.\n");
+		usage_exit();
+	}
+
+	open_flags = write_mode ? O_RDWR | O_SYNC : O_RDONLY;
+	open_flags |= ADDITIONAL_OPEN_FLAGS;
+	fd = CHECK_ERROR(open(image_name_a, open_flags), FAIL_OPEN);
 
 	CHECK_ERROR(fstat(fd, &fstat_buf), 3);
 
@@ -123,22 +180,36 @@ int main(int argc, char **argv)
 		num_of_fdds = potential_num_of_drives;
 	}
 
-	printf("Num of fdds: %u\n", num_of_fdds);
-
-	for (unsigned int slot = 0; slot < num_of_fdds; ++slot)
+	if (slot != UINT_MAX && slot >= num_of_fdds)
 	{
-		const uint64_t offset = slot * MAGIC_OFFSET;
-		printf("0x" UINT64_PRINTF_FORMAT " ", offset);
+		fprintf(stderr, "Maximum number of slots is 999. Allowed values 0 to 999.\n");
+		exit(EXIT_FAILURE);
+	}
 
-		CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
-		parse_fat(fd, slot);
+	printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 
-		printf(" ");
+	if (slot != UINT_MAX && !write_mode) {
+		parse_slot(fd, slot);
+		exit(EXIT_SUCCESS);
+	}
 
-		/* There is small (98304 bytes) gap among images, so let's use it to metadata */
-		CHECK_ERROR_GENERIC(lseek(fd, offset + IMAGE_SIZE, SEEK_SET), off_t, FAIL_LSEEK);
-		metadata_parse(fd, slot);
-		printf("\n");
+	if (write_mode && slot == UINT_MAX)
+	{
+		fprintf(stderr,"You need to specify short label.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (write_mode) {
+		struct metadata meta = metadata_init();
+
+		metadata_set_short_label(metadata_short_label, &meta);
+		metadata_write(fd, &meta, slot);
+		exit(EXIT_SUCCESS);
+	}
+
+	for (slot = 0; slot < num_of_fdds; ++slot)
+	{
+		parse_slot(fd, slot);
 	}
 
 	return EXIT_SUCCESS;
