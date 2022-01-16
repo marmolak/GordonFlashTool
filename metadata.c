@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <arpa/inet.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -12,8 +13,8 @@
 struct metadata metadata_init(void)
 {
     struct metadata meta = {
-        .magic          = METADATA_MAGIC,
-        .version        = METADATA_VERSION,
+        .magic          = htonl(METADATA_MAGIC),
+        .version        = htons(METADATA_VERSION),
         .short_label    = { '\0' },
         .note           = { '\0' },
     };
@@ -26,7 +27,7 @@ void metadata_set_short_label(const char *const short_label, struct metadata *co
     assert(short_label != NULL);
     assert(meta_p != NULL);
     /* Don't allow uninitialised structs. */
-    assert(meta_p->magic == METADATA_MAGIC && "Metadata struct must be initialised by metadata_init().");
+    assert(ntohl(meta_p->magic) == METADATA_MAGIC && "Metadata struct must be initialised by metadata_init().");
 
     const size_t len = strnlen(short_label, METADATA_SHORT_LABEL_SIZE);
     memcpy((void *) meta_p->short_label, (void *) short_label, len);
@@ -38,7 +39,7 @@ void metadata_parse(const int fd)
     struct metadata meta;
     
     CHECK_ERROR_GENERIC(read(fd, &meta, sizeof(meta)), ssize_t, FAIL_READ);
-    if (meta.magic != METADATA_MAGIC) {
+    if (ntohl(meta.magic) != METADATA_MAGIC) {
         printf("No metadata found.");
         return;
     }
