@@ -111,7 +111,7 @@ static void parse_slot(const int fd, unsigned int slot)
 
 static __attribute__((noreturn)) void usage_exit(void) 
 {
-	fprintf(stderr, "Usage: gordon [-d image_file|drive] [-s slot] [-l]\n");
+	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label']\n");
 	exit(EXIT_FAILURE);
 }
 
