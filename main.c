@@ -94,7 +94,9 @@ static bool parse_fat(const int fd)
 static void parse_slot(const int fd, unsigned int slot)
 {
 	const uint64_t offset = slot * MAGIC_OFFSET;
-	printf("%3u - 0x" UINT64_PRINTF_FORMAT " ", slot, offset);
+	const uint64_t start_block = offset / 512;
+	const uint64_t end_block = start_block + (IMAGE_SIZE / 512);
+	printf("%3u - %8llu,%-7llu - 0x" UINT64_PRINTF_FORMAT " ", slot, start_block, end_block, offset);
 
 	CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
 	parse_fat(fd);
@@ -111,6 +113,22 @@ static __attribute__((noreturn)) void usage_exit(void)
 {
 	fprintf(stderr, "Usage: gordon [-d image_file|drive] [-s slot] [-l]\n");
 	exit(EXIT_FAILURE);
+}
+
+void __attribute__((noreturn)) help_exit(void)
+{
+	static const char help[] =
+	"Output:\n"
+	"\tslot - start sector,end sector - hex offset 'LABEL FROM IMAGE' Metadata short label of image\n"
+	"\nMACOS (X) NOTES:\n"
+	"\tOn macOS machines, start sector and end sector can be used to "
+	"attach part of image file (only image file on filesystem :/) via hdiutil.\n"
+	"\n\tExample:\n"
+	"\t\t$ hdiutil attach -section 3072,5952 multiple_images_file.img\n"
+	"\n";
+
+	printf(help);
+	exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char **argv)
@@ -133,15 +151,17 @@ int main(int argc, char **argv)
 	   -s - slot
 	*/
 
-	while ((opt = getopt(argc, argv, "s:d:w:")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:w:h")) != -1) {
 		switch (opt) {
 		case 'w':
 			write_mode = true;
 			metadata_short_label = optarg;
 			break;
+
 		case 'd':
 			image_name_a = optarg;
 			break;
+
 		case 's': {
 			char *endptr = NULL;
 			errno = 0;
@@ -151,6 +171,11 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+
+		case 'h':
+			help_exit();
+			break;
+
 		default: /* '?' */
 			usage_exit();
 		}
