@@ -45,9 +45,15 @@ enum RET_CODES
     rc_p;                       \
 })
 
+/* Functions */
+void safe_close(int *const fd);
+
+/* Compatibility */
 #if defined(__APPLE__) && defined(__MACH__)
 
 #define UINT64_PRINTF_FORMAT "%.8llx"
+
+#define ADDITIONAL_OPEN_FLAGS 0
 
 #define bswap_16(value) \
 ((((value) & 0xff) << 8) | ((value) >> 8))
@@ -61,6 +67,8 @@ enum RET_CODES
 #include <byteswap.h>
 
 #define UINT64_PRINTF_FORMAT "%.8lx"
+
+#define ADDITIONAL_OPEN_FLAGS O_LARGEFILE
 
 #endif /* MACOS and Linux checks */
 

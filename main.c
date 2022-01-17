@@ -18,13 +18,13 @@
 #include <limits.h>
 
 #include "common.h"
+#include "images.h"
 #include "metadata.h"
+
 
 /* Compatibility layer */
 #if defined(__APPLE__) && defined(__MACH__)
 #include <sys/disk.h>
-
-#define ADDITIONAL_OPEN_FLAGS 0
 
 void blkgetsize(int fd, uint64_t *psize)
 {
@@ -38,8 +38,6 @@ void blkgetsize(int fd, uint64_t *psize)
 
 #elif defined(__linux__)
 #include <linux/fs.h>
-
-#define ADDITIONAL_OPEN_FLAGS O_LARGEFILE
 
 void blkgetsize(int fd, uint64_t *psize)
 {
@@ -57,18 +55,6 @@ void blkgetsize(int fd, uint64_t *psize)
 #else
 #error "Unsupported platform."
 #endif
-
-static void safe_close(int *const fd)
-{
-	if (fd == NULL) { 
-		return;
-	}
-
-	if (*fd != -1) {
-		CHECK_ERROR(close(*fd), FAIL_CLOSE);
-		*fd = -1;
-	}
-}
 
 static bool parse_fat(const int fd)
 {
@@ -109,6 +95,14 @@ static void parse_slot(const int fd, unsigned int slot)
 	printf("\n");
 }
 
+static void metadata_write_helper(const int fd, const unsigned int slot, const char *const metadata_short_label)
+{
+	struct metadata meta = metadata_init();
+
+	metadata_set_short_label(metadata_short_label, &meta);
+	metadata_write(fd, &meta, slot);
+}
+
 static __attribute__((noreturn)) void usage_exit(void) 
 {
 	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label']\n");
@@ -125,6 +119,8 @@ void __attribute__((noreturn)) help_exit(void)
 	"attach part of image file (only image file on filesystem :/) via hdiutil.\n"
 	"\n\tExample:\n"
 	"\t\t$ hdiutil attach -section 3072,5952 multiple_images_file.img\n"
+	"\nLINUX NOTES\n"
+	"On linux machine, loopback command can be used to mount single images"
 	"\n";
 
 	printf(help);
@@ -134,32 +130,31 @@ void __attribute__((noreturn)) help_exit(void)
 int main(int argc, char **argv)
 {
 	int opt;
-	char *image_name_a = NULL;
+	char *image_name_p = NULL;
+	char *src_image_name_p = NULL;
 	unsigned int slot = UINT_MAX;
 	bool write_mode = false;
+	bool write_meta = false;
 	char *metadata_short_label = NULL;
 
 	int fd __attribute__ ((__cleanup__(safe_close))) = -1;
-
 	int open_flags;
+
 	uint64_t fd_size = 0;
 	struct stat fstat_buf;
 	unsigned int potential_num_of_drives;
 	unsigned int num_of_fdds = GOTEK_MAX_FDDS;
 
-	/* -d - drive
-	   -s - slot
-	*/
-
-	while ((opt = getopt(argc, argv, "s:d:w:h")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:w:i:h")) != -1) {
 		switch (opt) {
 		case 'w':
 			write_mode = true;
+			write_meta = true;
 			metadata_short_label = optarg;
 			break;
 
 		case 'd':
-			image_name_a = optarg;
+			image_name_p = optarg;
 			break;
 
 		case 's': {
@@ -172,16 +167,23 @@ int main(int argc, char **argv)
 			break;
 		}
 
+		/* Input image */
+		case 'i':
+			write_mode = true;
+			src_image_name_p = optarg;
+			break;
+
 		case 'h':
 			help_exit();
 			break;
 
 		default: /* '?' */
 			usage_exit();
+			break;
 		}
 	}
 
-	if (image_name_a == NULL)
+	if (image_name_p == NULL)
 	{
 		fprintf(stderr, "You needd to provide at least disk/image file with -d disk|image file.\n");
 		usage_exit();
@@ -189,7 +191,7 @@ int main(int argc, char **argv)
 
 	open_flags = write_mode ? O_RDWR | O_SYNC : O_RDONLY;
 	open_flags |= ADDITIONAL_OPEN_FLAGS;
-	fd = CHECK_ERROR(open(image_name_a, open_flags), FAIL_OPEN);
+	fd = CHECK_ERROR(open(image_name_p, open_flags), FAIL_OPEN);
 
 	CHECK_ERROR(fstat(fd, &fstat_buf), 3);
 
@@ -213,6 +215,16 @@ int main(int argc, char **argv)
 
 	printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 
+	if (slot != UINT_MAX && image_name_p != NULL && src_image_name_p != NULL)
+	{
+		put_image_to(fd, slot, src_image_name_p);
+
+		if (write_meta) {
+			metadata_write_helper(fd, slot, metadata_short_label);
+		}
+		exit(EXIT_SUCCESS);
+	}
+
 	if (slot != UINT_MAX && !write_mode) {
 		parse_slot(fd, slot);
 		exit(EXIT_SUCCESS);
@@ -224,11 +236,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (write_mode) {
-		struct metadata meta = metadata_init();
-
-		metadata_set_short_label(metadata_short_label, &meta);
-		metadata_write(fd, &meta, slot);
+	if (write_meta) {
+		metadata_write_helper(fd, slot, metadata_short_label);
 		exit(EXIT_SUCCESS);
 	}
 

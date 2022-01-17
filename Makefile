@@ -1,16 +1,18 @@
 CFLAGS = -std=gnu99 -Wall -Wextra
-objects = metadata.o
+objects = main.o metadata.o common.o images.o
+files = main.c metadata.c common.c images.c
 
 DEBUG_FLAGS = -O0 -ggdb3
 
-ifeq '' '$(findstring clang,$(CC))'
-	DEBUG_FLAGS += -fsanitize=undefined
-endif
-
 .PHONY: all
-all: $(objects)
-	$(CC) $(CFLAGS) -o gordon metadata.o main.c
+all:
+	$(CC) $(CFLAGS) -o gordon $(objects)
 
 .PHONY: debug
-debug: $(objects)
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -o gordon metadata.o main.c
+debug: $(files)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -c $(files)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -o gordon $(objects)
+
+.PHONY: clean
+clean:
+	rm -f *.o
