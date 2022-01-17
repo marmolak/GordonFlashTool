@@ -28,8 +28,8 @@
 
 void blkgetsize(int fd, uint64_t *psize)
 {
-	unsigned long blocksize = 0;
-	unsigned long nblocks;
+    uint32_t blocksize = 0;
+    uint64_t nblocks;
 
 	CHECK_ERROR(ioctl(fd, DKIOCGETBLOCKSIZE, &blocksize), FAIL_IOCTL);
 	CHECK_ERROR(ioctl(fd, DKIOCGETBLOCKCOUNT, &nblocks), FAIL_IOCTL);
@@ -59,12 +59,13 @@ void blkgetsize(int fd, uint64_t *psize)
 static bool parse_fat(const int fd)
 {
 	char label[8];
-	uint32_t magic_mark;
+	uint32_t magic_mark = 0;
 
 	CHECK_ERROR_GENERIC(read(fd, &magic_mark, LABEL_OFFSET), ssize_t, FAIL_READ);
 
-	if (bswap_32(magic_mark & 0x00FFFFFF) != FAT_MAGIC_1 &&
-		bswap_32(magic_mark & 0x00FFFFFF) != FAT_MAGIC_2
+	if (
+		((bswap_32_depends(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_1) &&
+		((bswap_32_depends(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_2)
 	) {
 		printf("'NO FAT MAGIC FOUND'");
 		return false;

@@ -8,6 +8,7 @@
 #define IMAGE_SIZE 1474560u
 #define LABEL_OFFSET 3u
 #define IMAGES_GAP 98304
+
 #define FAT_MAGIC_1 0xEB3C9000u
 #define FAT_MAGIC_2 0xEB3E9000u
 #define GOTEK_MAX_FDDS 1000u
@@ -55,16 +56,37 @@ void safe_close(int *const fd);
 
 #define ADDITIONAL_OPEN_FLAGS 0
 
-#define bswap_16(value) \
+#if defined(__BIG_ENDIAN__)
+
+#define bswap_16_depends(value) (value)
+#define bswap_32_depends(value) (value)
+
+#else
+
+#define bswap_16_depends(value) \
 ((((value) & 0xff) << 8) | ((value) >> 8))
 
-#define bswap_32(value) \
-(((uint32_t)bswap_16((uint16_t)((value) & 0xffff)) << 16) | \
-(uint32_t)bswap_16((uint16_t)((value) >> 16)))
+#define bswap_32_depends(value) \
+(((uint32_t)bswap_16_depends((uint16_t)((value) & 0xffff)) << 16) | \
+(uint32_t)bswap_16_depends((uint16_t)((value) >> 16)))
+
+#endif
 
 #elif defined(__linux__)
 
-#include <byteswap.h>
+#include <endian.h>
+
+#if BYTE_ORDER == LITTLE_ENDIAN
+
+#define bswap_16_depends(value) (htobe16(value))
+#define bswap_32_depends(value) (htobe32(value))
+
+#else
+
+#define bswap_16_depends(value) (value)
+#define bswap_32_depends(value) (value)
+
+#endif
 
 #define UINT64_PRINTF_FORMAT "%.8lx"
 

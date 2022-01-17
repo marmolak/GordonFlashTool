@@ -29,7 +29,10 @@ void metadata_set_short_label(const char *const short_label, struct metadata *co
     /* Don't allow uninitialised structs. */
     assert(ntohl(meta_p->magic) == METADATA_MAGIC && "Metadata struct must be initialised by metadata_init().");
 
-    const size_t len = strnlen(short_label, METADATA_SHORT_LABEL_SIZE);
+    const size_t len = ({ 
+        size_t _len = strlen(short_label);
+        _len > METADATA_SHORT_LABEL_SIZE ? METADATA_SHORT_LABEL_SIZE : _len;
+    });
     memcpy((void *) meta_p->short_label, (void *) short_label, len);
     meta_p->short_label[METADATA_SHORT_LABEL_SIZE - 1] = '\0';
 }
@@ -61,7 +64,10 @@ void metadata_write_short_label_only(const int fd, const char *const short_label
     assert(short_label != NULL);
 
     const uint64_t offset = (MAGIC_OFFSET * slot) + IMAGE_SIZE + offsetof(struct metadata, short_label);
-    const size_t len = strnlen(short_label, METADATA_SHORT_LABEL_SIZE);
+    const size_t len = ({
+        size_t _len = strlen(short_label);
+        _len > METADATA_SHORT_LABEL_SIZE ? METADATA_SHORT_LABEL_SIZE : _len;
+    });
     char tmp_short_label[METADATA_SHORT_LABEL_SIZE] = { '\0' };
 
     memcpy(tmp_short_label, short_label, len);
