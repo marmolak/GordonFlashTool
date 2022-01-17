@@ -6,6 +6,7 @@ DEBUG_FLAGS = -O0 -ggdb3
 
 .PHONY: all
 all:
+	$(CC) $(CFLAGS) -c $(files)
 	$(CC) $(CFLAGS) -o gordon $(objects)
 
 .PHONY: debug
@@ -16,3 +17,4 @@ debug: $(files)
 .PHONY: clean
 clean:
 	rm -f *.o
+	rm -f gordon
