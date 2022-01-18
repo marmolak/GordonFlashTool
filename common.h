@@ -1,8 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdlib.h>
+#define _LARGEFILE64_SOURCE
+#define _DARWIN_USE_64_BIT_INODE
 
+#include <stdlib.h>
+#include <fcntl.h>
 
 #define MAGIC_OFFSET 1572864u
 #define IMAGE_SIZE 1474560u
@@ -21,8 +24,8 @@ enum RET_CODES
 	FAIL_OPEN = 2,
 	FAIL_LSEEK = 10,
 	FAIL_READ = 11,
-    FAIL_WRITE = 12,
-    FAIL_CLOSE = 13,
+	FAIL_WRITE = 12,
+	FAIL_CLOSE = 13,
 	FAIL_IOCTL = 20,
 };
 
