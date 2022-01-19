@@ -61,17 +61,17 @@ void safe_close(int *const fd);
 
 #if defined(__BIG_ENDIAN__)
 
-#define bswap_16_depends(value) (value)
-#define bswap_32_depends(value) (value)
+#define BSWAP16_ONLY_ON_LE(value) (value)
+#define BSWAP32_ONLY_ON_LE(value) (value)
 
 #else
 
-#define bswap_16_depends(value) \
+#define BSWAP16_ONLY_ON_LE(value) \
 ((((value) & 0xff) << 8) | ((value) >> 8))
 
-#define bswap_32_depends(value) \
-(((uint32_t)bswap_16_depends((uint16_t)((value) & 0xffff)) << 16) | \
-(uint32_t)bswap_16_depends((uint16_t)((value) >> 16)))
+#define BSWAP32_ONLY_ON_LE(value) \
+(((uint32_t)BSWAP16_ONLY_ON_LE((uint16_t)((value) & 0xffff)) << 16) | \
+(uint32_t)BSWAP16_ONLY_ON_LE((uint16_t)((value) >> 16)))
 
 #endif
 
@@ -81,13 +81,13 @@ void safe_close(int *const fd);
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 
-#define bswap_16_depends(value) (htobe16(value))
-#define bswap_32_depends(value) (htobe32(value))
+#define BSWAP16_ONLY_ON_LE(value) (htobe16(value))
+#define BSWAP32_ONLY_ON_LE(value) (htobe32(value))
 
 #else
 
-#define bswap_16_depends(value) (value)
-#define bswap_32_depends(value) (value)
+#define BSWAP16_ONLY_ON_LE(value) (value)
+#define BSWAP32_ONLY_ON_LE(value) (value)
 
 #endif
 

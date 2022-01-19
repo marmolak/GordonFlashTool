@@ -59,13 +59,13 @@ void blkgetsize(int fd, uint64_t *psize)
 static bool parse_fat(const int fd)
 {
 	char label[8];
-	uint32_t magic_mark = 0;
+	uint32_t magic_mark;
 
 	CHECK_ERROR_GENERIC(read(fd, &magic_mark, LABEL_OFFSET), ssize_t, FAIL_READ);
 
 	if (
-		((bswap_32_depends(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_1) &&
-		((bswap_32_depends(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_2)
+		((BSWAP32_ONLY_ON_LE(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_1) &&
+		((BSWAP32_ONLY_ON_LE(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_2)
 	) {
 		printf("'NO FAT MAGIC FOUND'");
 		return false;
