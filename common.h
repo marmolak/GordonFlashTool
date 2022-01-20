@@ -20,13 +20,14 @@
 
 enum RET_CODES
 {
-	FAIL_ARGS = 1,
-	FAIL_OPEN = 2,
-	FAIL_LSEEK = 10,
-	FAIL_READ = 11,
-	FAIL_WRITE = 12,
-	FAIL_CLOSE = 13,
-	FAIL_IOCTL = 20,
+	FAIL_ARGS   = 1,
+	FAIL_OPEN   = 2,
+	FAIL_LSEEK  = 10,
+	FAIL_READ   = 11,
+	FAIL_WRITE  = 12,
+	FAIL_CLOSE  = 13,
+	FAIL_IOCTL  = 20,
+    FAIL_MMAP   = 30,
 };
 
 #define CHECK_ERROR_GENERIC(f, t, e) ({ \
@@ -40,9 +41,9 @@ enum RET_CODES
 
 #define CHECK_ERROR(f, e) CHECK_ERROR_GENERIC(f, int, e)
 
-#define CHECK_ERROR_P(f, e) ({  \
+#define CHECK_ERROR_MMAP(f, e) ({  \
     void *rc_p = (f);           \
-    if (rc_p == NULL) {         \
+    if (rc_p == MAP_FAILED) {   \
         perror(__func__);       \
         exit((e));              \
     }                           \

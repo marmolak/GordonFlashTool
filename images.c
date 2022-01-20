@@ -1,3 +1,6 @@
+#define _LARGEFILE64_SOURCE
+#define _DARWIN_FEATURE_64_BIT_INODE
+
 #include "images.h"
 #include "common.h"
 
@@ -15,14 +18,14 @@ struct mem {
 
 static void safe_unmmap(struct mem *m_a)
 {
-    if (m_a == NULL) {
+    if (m_a == NULL || m_a == MAP_FAILED) {
         return;
     }
 
     CHECK_ERROR(munmap(m_a->m, m_a->len), 26);
 }
 
-void put_image_to(const int fd_dst, const unsigned int slot, const char *const source)
+void put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 {
     int fd_src __attribute__ ((__cleanup__(safe_close))) = -1;
     const uint64_t dst_offset = slot * MAGIC_OFFSET;
@@ -39,12 +42,11 @@ void put_image_to(const int fd_dst, const unsigned int slot, const char *const s
 
     /* map source */
     fd_src = CHECK_ERROR(open(source, O_RDONLY | ADDITIONAL_OPEN_FLAGS), FAIL_OPEN);
-    src_m.m = CHECK_ERROR_P(mmap(NULL, src_m.len, PROT_READ, MAP_SHARED, fd_src, 0), 66);
+    src_m.m = CHECK_ERROR_MMAP(mmap(NULL, src_m.len, PROT_READ, MAP_SHARED, fd_src, 0), FAIL_MMAP);
     safe_close(&fd_src);
 
     /* set and map destionation */
-    CHECK_ERROR_GENERIC(lseek(fd_dst, dst_offset, SEEK_SET), off_t, FAIL_LSEEK);
-    dst_m.m = CHECK_ERROR_P(mmap(NULL, src_m.len, PROT_WRITE, MAP_SHARED, fd_dst, 0), 66);
+    dst_m.m = CHECK_ERROR_MMAP(mmap(NULL, dst_m.len, PROT_WRITE, MAP_SHARED, fd_dst, dst_offset), FAIL_MMAP);
 
     memcpy(dst_m.m, src_m.m, IMAGE_SIZE);
 }
