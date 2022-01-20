@@ -4,8 +4,11 @@
 #define _LARGEFILE64_SOURCE
 #define _DARWIN_USE_64_BIT_INODE
 
-#include <stdlib.h>
 #include <fcntl.h>
+#include <sys/errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MAGIC_OFFSET 1572864u
 #define IMAGE_SIZE 1474560u
@@ -31,23 +34,23 @@ enum RET_CODES
 };
 
 #define CHECK_ERROR_GENERIC(f, t, e) ({ \
-    __typeof__(t) rc = (f);             \
-    if (rc == -1) {                     \
-        perror(__func__);               \
-        exit((e));                      \
-    }                                   \
-    rc;                                 \
+    __typeof__(t) rc = (f);                                             \
+    if (rc == -1) {                                                     \
+        fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno));  \
+        exit((e));                                                      \
+    }                                                                   \
+    rc;                                                                 \
 })
 
 #define CHECK_ERROR(f, e) CHECK_ERROR_GENERIC(f, int, e)
 
-#define CHECK_ERROR_MMAP(f, e) ({  \
-    void *rc_p = (f);           \
-    if (rc_p == MAP_FAILED) {   \
-        perror(__func__);       \
-        exit((e));              \
-    }                           \
-    rc_p;                       \
+#define CHECK_ERROR_MMAP(f, e) ({                                       \
+    void *rc_p = (f);                                                   \
+    if (rc_p == MAP_FAILED) {                                           \
+        fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno));  \
+        exit((e));                                                      \
+    }                                                                   \
+    rc_p;                                                               \
 })
 
 /* Functions */

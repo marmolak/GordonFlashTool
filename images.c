@@ -1,15 +1,15 @@
 #define _LARGEFILE64_SOURCE
 #define _DARWIN_FEATURE_64_BIT_INODE
 
-#include "images.h"
 #include "common.h"
+#include "images.h"
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/mman.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
 
 struct mem {
     void *m;
