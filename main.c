@@ -194,9 +194,15 @@ int main(int argc, char **argv)
 	open_flags |= ADDITIONAL_OPEN_FLAGS;
 	fd = CHECK_ERROR(open(image_name_p, open_flags), FAIL_OPEN);
 
-	CHECK_ERROR(fstat(fd, &fstat_buf), 3);
+	CHECK_ERROR(fstat(fd, &fstat_buf), FAIL_FSTAT);
 
-	if ((fstat_buf.st_mode & S_IFBLK) == S_IFBLK)
+	if (S_ISCHR(fstat_buf.st_mode))
+	{
+		fprintf(stderr, "Special character device is not supported. Probably you want to use /dev/rdisk device on MacOS?\n");
+		exit(FAIL_CHRNOTSUPP);
+	}
+
+	if (S_ISBLK(fstat_buf.st_mode))
 	{
 		blkgetsize(fd, &fd_size);
 	} else {

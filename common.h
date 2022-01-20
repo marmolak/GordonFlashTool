@@ -23,14 +23,16 @@
 
 enum RET_CODES
 {
-	FAIL_ARGS   = 1,
-	FAIL_OPEN   = 2,
-	FAIL_LSEEK  = 10,
-	FAIL_READ   = 11,
-	FAIL_WRITE  = 12,
-	FAIL_CLOSE  = 13,
-	FAIL_IOCTL  = 20,
-    FAIL_MMAP   = 30,
+	FAIL_ARGS       = 1,
+	FAIL_OPEN       = 2,
+	FAIL_LSEEK      = 10,
+	FAIL_READ       = 11,
+	FAIL_WRITE      = 12,
+	FAIL_CLOSE      = 13,
+    FAIL_FSTAT      = 14,
+	FAIL_IOCTL      = 20,
+    FAIL_MMAP       = 30,
+    FAIL_CHRNOTSUPP = 40,
 };
 
 #define CHECK_ERROR_GENERIC(f, t, e) ({ \
