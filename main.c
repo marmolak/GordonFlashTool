@@ -106,7 +106,7 @@ static void metadata_write_helper(const int fd, const unsigned int slot, const c
 
 static __attribute__((noreturn)) void usage_exit(void) 
 {
-	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label']\n");
+	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file']\n");
 	exit(EXIT_FAILURE);
 }
 
