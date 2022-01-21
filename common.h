@@ -17,6 +17,7 @@
 
 #define FAT_MAGIC_1 0xEB3C9000u
 #define FAT_MAGIC_2 0xEB3E9000u
+#define FAT_MAGIC_3 0xEB3F9000u
 #define GOTEK_MAX_FDDS 1000u
 
 #define NONNULLARGS __attribute__((nonnull)) 

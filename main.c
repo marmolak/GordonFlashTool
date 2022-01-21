@@ -63,9 +63,11 @@ static bool parse_fat(const int fd)
 
 	CHECK_ERROR_GENERIC(read(fd, &magic_mark, LABEL_OFFSET), ssize_t, FAIL_READ);
 
+    magic_mark = BSWAP32_ONLY_ON_LE(magic_mark);
 	if (
-		((BSWAP32_ONLY_ON_LE(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_1) &&
-		((BSWAP32_ONLY_ON_LE(magic_mark) & 0xFFFFFF00u) != FAT_MAGIC_2)
+		((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_1)
+		&& ((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_2)
+		&& ((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_3)
 	) {
 		printf("'NO FAT MAGIC FOUND'");
 		return false;
