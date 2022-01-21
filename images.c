@@ -29,7 +29,9 @@ void put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 {
     int fd_src __attribute__ ((__cleanup__(safe_close))) = -1;
     const uint64_t dst_offset = slot * MAGIC_OFFSET;
-    size_t n;
+    ssize_t rc;
+    ssize_t n;
+    char *m_p;
 
     struct mem __attribute__ ((__cleanup__(safe_unmmap))) src_m = {
         .m = NULL,
@@ -50,16 +52,20 @@ void put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 #if defined(__APPLE__) && defined(__MACH__)
     (void) dst_m;
     n = src_m.len;
+    m_p = (char *) src_m.m;
 
     CHECK_ERROR(lseek(fd_dst, dst_offset, SEEK_SET), FAIL_LSEEK);
 
     do {
         /* Don't handle syscall restart for now. */
-        n -= CHECK_ERROR(write(fd_dst, src_m.m, n), FAIL_WRITE);
+        rc = CHECK_ERROR(write(fd_dst, m_p, n), FAIL_WRITE);
+        n -= rc;
+        m_p += n;
     } while (n > 0);
 
 #else
     (void) n;
+    (void) m_p;
 
     /* set and map destionation */
     dst_m.m = CHECK_ERROR_MMAP(mmap(NULL, dst_m.len, PROT_WRITE, MAP_SHARED, fd_dst, dst_offset), FAIL_MMAP);
