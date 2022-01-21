@@ -66,6 +66,7 @@ void put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 #else
     (void) n;
     (void) m_p;
+    (void) rc;
 
     /* set and map destionation */
     dst_m.m = CHECK_ERROR_MMAP(mmap(NULL, dst_m.len, PROT_WRITE, MAP_SHARED, fd_dst, dst_offset), FAIL_MMAP);
