@@ -11,7 +11,7 @@ void safe_close(int *const fd)
 	}
 
 	if (*fd != -1) {
-		CHECK_ERROR(close(*fd), FAIL_CLOSE);
+		close(*fd);
 		*fd = -1;
 	}
 }

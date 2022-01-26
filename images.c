@@ -1,7 +1,6 @@
 #define _LARGEFILE64_SOURCE
 #define _DARWIN_FEATURE_64_BIT_INODE
 
-#include "common.h"
 #include "images.h"
 
 #include <fcntl.h>
@@ -22,14 +21,14 @@ static void safe_unmmap(struct mem *m_a)
         return;
     }
 
-    CHECK_ERROR(munmap(m_a->m, m_a->len), FAIL_MMAP);
+    munmap(m_a->m, m_a->len);
 }
 
-void put_image_to(int fd_dst, const unsigned int slot, const char *const source)
+enum RET_CODES put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 {
     int fd_src __attribute__ ((__cleanup__(safe_close))) = -1;
     const uint64_t dst_offset = slot * MAGIC_OFFSET;
-    ssize_t rc;
+    ssize_t size_bytes;
     ssize_t n;
     char *m_p;
 
@@ -58,19 +57,20 @@ void put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 
     do {
         /* Don't handle syscall restart for now. */
-        rc = CHECK_ERROR(write(fd_dst, m_p, n), FAIL_WRITE);
-        n -= rc;
+        size_bytes = CHECK_ERROR(write(fd_dst, m_p, n), FAIL_WRITE);
+        n -= size_bytes;
         m_p += n;
     } while (n > 0);
 
 #else
     (void) n;
     (void) m_p;
-    (void) rc;
+    (void) size_bytes;
 
     /* set and map destionation */
     dst_m.m = CHECK_ERROR_MMAP(mmap(NULL, dst_m.len, PROT_WRITE, MAP_SHARED, fd_dst, dst_offset), FAIL_MMAP);
     memcpy(dst_m.m, src_m.m, IMAGE_SIZE);
 #endif
 
+    return FAIL_SUCC;
 }

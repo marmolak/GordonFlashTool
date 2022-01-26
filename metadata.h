@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "common.h"
 #include "cassert.h"
 
 #define METADATA_MAGIC 0xB000B1E5u
@@ -24,10 +25,10 @@ STATIC_ASSERT(sizeof(struct metadata) <= IMAGES_GAP, Size_of_struct_metadata_mus
 
 struct metadata metadata_init(void);
 
-void metadata_set_short_label(const char *const short_label, struct metadata *const meta_p);
-void metadata_parse(const int fd);
+enum RET_CODES metadata_set_short_label(const char *const short_label, struct metadata *const meta_p);
+enum RET_CODES metadata_parse(const int fd);
 
-void metadata_write(const int fd, const struct metadata *const meta_p, const unsigned int slot);
-void metadata_write_short_label_only(const int fd, const char *const short_label, const unsigned int slot);
+enum RET_CODES metadata_write(const int fd, const struct metadata *const meta_p, const unsigned int slot);
+enum RET_CODES metadata_write_short_label_only(const int fd, const char *const short_label, const unsigned int slot);
 
 #endif /* METADATA_H */

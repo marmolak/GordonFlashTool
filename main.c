@@ -26,7 +26,7 @@
 #if defined(__APPLE__) && defined(__MACH__)
 #include <sys/disk.h>
 
-void blkgetsize(int fd, uint64_t *psize)
+enum RET_CODES blkgetsize(int fd, uint64_t *psize)
 {
     uint32_t blocksize = 0;
     uint64_t nblocks;
@@ -34,12 +34,14 @@ void blkgetsize(int fd, uint64_t *psize)
 	CHECK_ERROR(ioctl(fd, DKIOCGETBLOCKSIZE, &blocksize), FAIL_IOCTL);
 	CHECK_ERROR(ioctl(fd, DKIOCGETBLOCKCOUNT, &nblocks), FAIL_IOCTL);
 	*psize = (uint64_t) nblocks * blocksize;
+
+    return FAIL_SUCC;
 }
 
 #elif defined(__linux__)
 #include <linux/fs.h>
 
-void blkgetsize(int fd, uint64_t *psize)
+enum RET_CODES  blkgetsize(int fd, uint64_t *psize)
 {
 #ifdef BLKGETSIZE64
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE64, psize), FAIL_IOCTL);
@@ -47,6 +49,8 @@ void blkgetsize(int fd, uint64_t *psize)
 	unsigned long sectors = 0;
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE, &sectors), FAIL_IOCTL);
 	*psize = sectors * 512ULL;
+
+    return FAIL_SUCC;
 #else
 # error "Linux configuration error (blkgetsize)"
 #endif
@@ -56,7 +60,7 @@ void blkgetsize(int fd, uint64_t *psize)
 #error "Unsupported platform."
 #endif
 
-static bool parse_fat(const int fd)
+static enum RET_CODES parse_fat(const int fd)
 {
 	char label[8];
 	uint32_t magic_mark;
@@ -70,17 +74,17 @@ static bool parse_fat(const int fd)
 		&& ((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_3)
 	) {
 		printf("'NO FAT MAGIC FOUND'");
-		return false;
+		return FAIL_FAIL;
 	}
 
 	CHECK_ERROR_GENERIC(read(fd, &label, sizeof(label) / sizeof(label[0]) - 1), ssize_t, FAIL_READ);
 	label[7] = '\0';
 
 	printf("'%s'", label);
-	return true;
+	return FAIL_SUCC;
 }
 
-static void parse_slot(const int fd, unsigned int slot)
+enum RET_CODES parse_slot(const int fd, unsigned int slot)
 {
 	const uint64_t offset = slot * MAGIC_OFFSET;
 	const uint64_t start_block = offset / 512;
@@ -96,23 +100,34 @@ static void parse_slot(const int fd, unsigned int slot)
 	CHECK_ERROR_GENERIC(lseek(fd, offset + IMAGE_SIZE, SEEK_SET), off_t, FAIL_LSEEK);
 	metadata_parse(fd);
 	printf("\n");
+
+    return FAIL_SUCC;
 }
 
-static void metadata_write_helper(const int fd, const unsigned int slot, const char *const metadata_short_label)
+static enum RET_CODES metadata_write_helper(const int fd, const unsigned int slot, const char *const metadata_short_label)
 {
 	struct metadata meta = metadata_init();
+    enum RET_CODES rc;
 
-	metadata_set_short_label(metadata_short_label, &meta);
-	metadata_write(fd, &meta, slot);
+	rc = metadata_set_short_label(metadata_short_label, &meta);
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
+
+	rc = metadata_write(fd, &meta, slot);
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
+
+    return FAIL_SUCC;
 }
 
-static __attribute__((noreturn)) void usage_exit(void) 
+static void usage(void)
 {
 	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file']\n");
-	exit(EXIT_FAILURE);
 }
 
-void __attribute__((noreturn)) help_exit(void)
+void help(void)
 {
 	static const char help[] =
 	"Output:\n"
@@ -127,7 +142,6 @@ void __attribute__((noreturn)) help_exit(void)
 	"\n";
 
 	printf(help);
-	exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char **argv)
@@ -148,6 +162,8 @@ int main(int argc, char **argv)
 	unsigned int potential_num_of_drives;
 	unsigned int num_of_fdds = GOTEK_MAX_FDDS;
 
+    enum RET_CODES rc;
+
 	while ((opt = getopt(argc, argv, "s:d:w:i:h")) != -1) {
 		switch (opt) {
 		case 'w':
@@ -165,7 +181,8 @@ int main(int argc, char **argv)
 			errno = 0;
 			slot = (unsigned int) strtoul(optarg, &endptr, 10);
 			if (errno != 0 || *endptr != '\0') {
-				usage_exit();
+				usage();
+                return EXIT_SUCCESS;
 			}
 			break;
 		}
@@ -177,11 +194,13 @@ int main(int argc, char **argv)
 			break;
 
 		case 'h':
-			help_exit();
+			help();
+            return EXIT_SUCCESS;
 			break;
 
 		default: /* '?' */
-			usage_exit();
+			usage();
+            return EXIT_SUCCESS;
 			break;
 		}
 	}
@@ -189,7 +208,8 @@ int main(int argc, char **argv)
 	if (image_name_p == NULL)
 	{
 		fprintf(stderr, "You needd to provide at least disk/image file with -d disk|image file.\n");
-		usage_exit();
+		usage();
+        return EXIT_SUCCESS;
 	}
 
 	open_flags = write_mode ? O_RDWR | O_SYNC : O_RDONLY;
@@ -201,12 +221,15 @@ int main(int argc, char **argv)
 	if (S_ISCHR(fstat_buf.st_mode))
 	{
 		fprintf(stderr, "Special character device is not supported. Probably you want to use /dev/rdisk device on MacOS?\n");
-		exit(FAIL_CHRNOTSUPP);
+		return FAIL_CHRNOTSUPP;
 	}
 
 	if (S_ISBLK(fstat_buf.st_mode))
 	{
-		blkgetsize(fd, &fd_size);
+		rc = blkgetsize(fd, &fd_size);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
 	} else {
 		fd_size = fstat_buf.st_size;
 	}
@@ -219,35 +242,47 @@ int main(int argc, char **argv)
 	if (slot != UINT_MAX && slot >= num_of_fdds)
 	{
 		fprintf(stderr, "Maximum number of slots is 999. Allowed values 0 to 999.\n");
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 
 	if (slot != UINT_MAX && image_name_p != NULL && src_image_name_p != NULL)
 	{
-		put_image_to(fd, slot, src_image_name_p);
+		rc = put_image_to(fd, slot, src_image_name_p);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
 
 		if (write_meta) {
-			metadata_write_helper(fd, slot, metadata_short_label);
+			rc = metadata_write_helper(fd, slot, metadata_short_label);
+            if (rc != FAIL_SUCC) {
+                return rc;
+            }
 		}
-		exit(EXIT_SUCCESS);
+		return EXIT_SUCCESS;
 	}
 
 	if (slot != UINT_MAX && !write_mode) {
-		parse_slot(fd, slot);
-		exit(EXIT_SUCCESS);
+		rc = parse_slot(fd, slot);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
+		return EXIT_SUCCESS;
 	}
 
 	if (write_mode && slot == UINT_MAX)
 	{
 		fprintf(stderr,"You need to specify short label.\n");
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	if (write_meta) {
-		metadata_write_helper(fd, slot, metadata_short_label);
-		exit(EXIT_SUCCESS);
+		rc = metadata_write_helper(fd, slot, metadata_short_label);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
+		return EXIT_SUCCESS;
 	}
 
 	for (slot = 0; slot < num_of_fdds; ++slot)

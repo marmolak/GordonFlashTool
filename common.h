@@ -24,6 +24,7 @@
 
 enum RET_CODES
 {
+    FAIL_SUCC       = EXIT_SUCCESS,
 	FAIL_ARGS       = 1,
 	FAIL_OPEN       = 2,
 	FAIL_LSEEK      = 10,
@@ -34,13 +35,14 @@ enum RET_CODES
 	FAIL_IOCTL      = 20,
     FAIL_MMAP       = 30,
     FAIL_CHRNOTSUPP = 40,
+    FAIL_FAIL       = 50,
 };
 
 #define CHECK_ERROR_GENERIC(f, t, e) ({ \
     __typeof__(t) rc = (f);                                             \
     if (rc == -1) {                                                     \
-        fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno));  \
-        exit((e));                                                      \
+        fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno)); \
+        return((e));                                                    \
     }                                                                   \
     rc;                                                                 \
 })
@@ -50,8 +52,8 @@ enum RET_CODES
 #define CHECK_ERROR_MMAP(f, e) ({                                       \
     void *rc_p = (f);                                                   \
     if (rc_p == MAP_FAILED) {                                           \
-        fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno));  \
-        exit((e));                                                      \
+        fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno)); \
+        return((e));                                                    \
     }                                                                   \
     rc_p;                                                               \
 })

@@ -7,7 +7,6 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-#include "common.h"
 #include "metadata.h"
 
 struct metadata metadata_init(void)
@@ -22,7 +21,7 @@ struct metadata metadata_init(void)
     return meta;
 }
 
-void metadata_set_short_label(const char *const short_label, struct metadata *const meta_p)
+enum RET_CODES metadata_set_short_label(const char *const short_label, struct metadata *const meta_p)
 {
     assert(short_label != NULL);
     assert(meta_p != NULL);
@@ -35,31 +34,35 @@ void metadata_set_short_label(const char *const short_label, struct metadata *co
     });
     memcpy((void *) meta_p->short_label, (void *) short_label, len);
     meta_p->short_label[METADATA_SHORT_LABEL_SIZE - 1] = '\0';
+
+    return FAIL_SUCC;
 }
 
-void metadata_parse(const int fd)
+enum RET_CODES metadata_parse(const int fd)
 {
     struct metadata meta;
     
     CHECK_ERROR_GENERIC(read(fd, &meta, sizeof(meta)), ssize_t, FAIL_READ);
     if (ntohl(meta.magic) != METADATA_MAGIC) {
         printf("No metadata found.");
-        return;
+        return FAIL_SUCC;
     }
 
     printf("%.63s", meta.short_label);
+    return FAIL_SUCC;
 }
 
-void metadata_write(const int fd, const struct metadata *const meta_p, const unsigned int slot)
+enum RET_CODES metadata_write(const int fd, const struct metadata *const meta_p, const unsigned int slot)
 {
     assert(meta_p != NULL);
 
     const uint64_t offset = (MAGIC_OFFSET * slot) + IMAGE_SIZE;
     CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
     CHECK_ERROR(write(fd, (void *) meta_p, sizeof(*meta_p)), FAIL_WRITE);
+    return FAIL_SUCC;
 }
 
-void metadata_write_short_label_only(const int fd, const char *const short_label, const unsigned int slot)
+enum RET_CODES metadata_write_short_label_only(const int fd, const char *const short_label, const unsigned int slot)
 {
     assert(short_label != NULL);
 
@@ -75,4 +78,6 @@ void metadata_write_short_label_only(const int fd, const char *const short_label
 
     CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
     CHECK_ERROR(write(fd, (void *) &tmp_short_label, METADATA_SHORT_LABEL_SIZE), FAIL_WRITE);
+
+    return FAIL_SUCC;
 }
