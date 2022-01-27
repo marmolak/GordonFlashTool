@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
 	if (image_name_p == NULL)
 	{
-		fprintf(stderr, "You need to provide at least disk/image file with -d disk|image file.\n");
+		fprintf(stderr, "You need to provide at least disk/image file with -d disk/image file.\n");
 		usage();
         return EXIT_SUCCESS;
 	}
