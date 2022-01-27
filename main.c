@@ -21,6 +21,8 @@
 #include "images.h"
 #include "metadata.h"
 
+#include "banned.h"
+
 
 /* Compatibility layer */
 #if defined(__APPLE__) && defined(__MACH__)

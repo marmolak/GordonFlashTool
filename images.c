@@ -10,6 +10,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "banned.h"
+
 struct mem {
     void *m;
     size_t len;

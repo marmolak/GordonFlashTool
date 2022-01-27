@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "metadata.h"
+#include "banned.h"
 
 struct metadata metadata_init(void)
 {
