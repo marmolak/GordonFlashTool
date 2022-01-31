@@ -1,8 +1,3 @@
-#define _LARGEFILE64_SOURCE
-#define _DARWIN_FEATURE_64_BIT_INODE
-
-#include "images.h"
-
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <stdint.h>
@@ -10,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "banned.h"
+#include "images.h"
 
 struct mem {
     void *m;

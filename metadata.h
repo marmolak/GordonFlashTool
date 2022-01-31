@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include "common.h"
 #include "cassert.h"
+#include "common.h"
 
 #define METADATA_MAGIC 0xB000B1E5u
 #define METADATA_VERSION 0x0001u
