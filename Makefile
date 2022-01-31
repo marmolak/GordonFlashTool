@@ -2,12 +2,13 @@ CFLAGS = -std=gnu99 -Wall -Wextra
 objects = main.o metadata.o common.o images.o file_dev_ops.o
 files = main.c metadata.c common.c images.c file_dev_ops.c
 
+RELEASE_FLAGS = -DNDEBUG
 DEBUG_FLAGS = -O0 -ggdb3
 
 .PHONY: all
 all:
-	$(CC) $(CFLAGS) -c $(files)
-	$(CC) $(CFLAGS) -o gordon $(objects)
+	$(CC) $(CFLAGS) $(RELEASE_FLAGS) -c $(files)
+	$(CC) $(CFLAGS) $(RELEASE_FLAGS) -o gordon $(objects)
 
 .PHONY: debug
 debug: $(files)
