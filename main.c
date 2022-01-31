@@ -1,5 +1,4 @@
-#define _LARGEFILE64_SOURCE
-#define _DARWIN_USE_64_BIT_INODE
+#include "common.h"
 
 #include <errno.h>
 #include <getopt.h>
@@ -7,20 +6,17 @@
 #include <sys/uio.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <limits.h>
 
 #include "images.h"
 #include "metadata.h"
 #include "file_dev_ops.h"
-#include "common.h"
+
 
 static enum RET_CODES parse_fat(const int fd)
 {
@@ -76,7 +72,7 @@ static enum RET_CODES metadata_write_helper(const int fd, const unsigned int slo
         return rc;
     }
 
-	rc = metadata_write(fd, &meta, slot);
+	rc = metadata_write(fd, slot, &meta);
     if (rc != FAIL_SUCC) {
         return rc;
     }
@@ -197,17 +193,18 @@ int main(int argc, char **argv)
 
 	if (slot != UINT_MAX && image_name_p != NULL && src_image_name_p != NULL)
 	{
-		rc = put_image_to(fd, slot, src_image_name_p);
-        if (rc != FAIL_SUCC) {
-            return rc;
-        }
-
 		if (write_meta) {
 			rc = metadata_write_helper(fd, slot, metadata_short_label);
             if (rc != FAIL_SUCC) {
                 return rc;
             }
 		}
+
+		rc = images_put_image_to(fd, slot, src_image_name_p);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
+
 		return EXIT_SUCCESS;
 	}
 

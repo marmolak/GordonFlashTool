@@ -1,9 +1,11 @@
+#include "common.h"
+
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <sys/ioctl.h>
 
 #include "file_dev_ops.h"
-#include "common.h"
 
 /* Compatibility layer */
 #if defined(__APPLE__) && defined(__MACH__)
@@ -28,6 +30,8 @@ enum RET_CODES  blkgetsize(int fd, uint64_t *psize)
 {
 #ifdef BLKGETSIZE64
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE64, psize), FAIL_IOCTL);
+
+    return FAIL_SUCC;
 #elif BLKGETSIZE
 	unsigned long sectors = 0;
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE, &sectors), FAIL_IOCTL);

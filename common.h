@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
 #define _DARWIN_USE_64_BIT_INODE
 
 #include <fcntl.h>

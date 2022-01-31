@@ -1,6 +1,6 @@
 CFLAGS = -std=gnu99 -Wall -Wextra
-objects = main.o metadata.o common.o images.o file_dev_ops.o
-files = main.c metadata.c common.c images.c file_dev_ops.c
+objects = main.o metadata.o common.o images.o file_dev_ops.o crypt_md5.o
+files = main.c metadata.c common.c images.c file_dev_ops.c crypt_md5.c
 
 RELEASE_FLAGS = -DNDEBUG
 DEBUG_FLAGS = -O0 -ggdb3

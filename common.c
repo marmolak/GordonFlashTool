@@ -1,8 +1,7 @@
 #include <stdio.h>
+#include <unistd.h>
 
 #include "common.h"
-
-#include <unistd.h>
 
 void safe_close(int *const fd)
 {
