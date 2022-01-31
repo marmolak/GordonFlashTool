@@ -12,8 +12,8 @@
 
 #include "banned.h"
 
-#define MAGIC_OFFSET 1572864u
-#define IMAGE_SIZE 1474560u
+#define MAGIC_OFFSET 1572864llu
+#define IMAGE_SIZE 1474560llu
 #define LABEL_OFFSET 3u
 #define IMAGES_GAP 98304
 

@@ -5,11 +5,12 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "file_dev_ops.h"
 #include "images.h"
 
 struct mem {
     void *m;
-    size_t len;
+    uint64_t len;
 };
 
 static void safe_unmmap(struct mem *m_a)
@@ -23,6 +24,7 @@ static void safe_unmmap(struct mem *m_a)
 
 enum RET_CODES put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 {
+    enum RET_CODES rc;
     int fd_src __attribute__ ((__cleanup__(safe_close))) = -1;
     const uint64_t dst_offset = slot * MAGIC_OFFSET;
     ssize_t size_bytes;
@@ -41,6 +43,18 @@ enum RET_CODES put_image_to(int fd_dst, const unsigned int slot, const char *con
 
     /* map source */
     fd_src = CHECK_ERROR(open(source, O_RDONLY | ADDITIONAL_OPEN_FLAGS), FAIL_OPEN);
+
+    rc = get_file_or_device_size(fd_src, &src_m.len);
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
+
+    if (src_m.len > IMAGE_SIZE) {
+        fprintf(stderr, "Source image size: %llu is bigger than %llu. Result on destination will be truncated.",
+                src_m.len, IMAGE_SIZE);
+        src_m.len = IMAGE_SIZE;
+    }
+
     src_m.m = CHECK_ERROR_MMAP(mmap(NULL, src_m.len, PROT_READ, MAP_SHARED, fd_src, 0), FAIL_MMAP);
     safe_close(&fd_src);
 
@@ -66,7 +80,7 @@ enum RET_CODES put_image_to(int fd_dst, const unsigned int slot, const char *con
 
     /* set and map destionation */
     dst_m.m = CHECK_ERROR_MMAP(mmap(NULL, dst_m.len, PROT_WRITE, MAP_SHARED, fd_dst, dst_offset), FAIL_MMAP);
-    memcpy(dst_m.m, src_m.m, IMAGE_SIZE);
+    memcpy(dst_m.m, src_m.m, src_m.len);
 #endif
 
     return FAIL_SUCC;
