@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "banned.h"
+
 #define MAGIC_OFFSET 1572864u
 #define IMAGE_SIZE 1474560u
 #define LABEL_OFFSET 3u
@@ -57,6 +59,8 @@ enum RET_CODES
     }                                                                   \
     rc_p;                                                               \
 })
+
+#define CHECK_ERROR_NOVALRET(f, e) (void)CHECK_ERROR_GENERIC(f, int, e)
 
 /* Functions */
 void safe_close(int *const fd);
