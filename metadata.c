@@ -54,7 +54,7 @@ enum RET_CODES metadata_parse(const int fd)
     printf("%.63s - ", meta.short_label);
     for (p = 0; p < 16; ++p)
     {
-        printf("%x", meta.checksum[p]);
+        printf("%.2x", meta.checksum[p]);
     }
 
     return FAIL_SUCC;
