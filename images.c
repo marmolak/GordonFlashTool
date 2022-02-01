@@ -33,7 +33,7 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     ssize_t size_bytes;
     ssize_t n;
     char *m_p;
-    unsigned char checksum[METADATA_CHECKSUM_SIZE];
+    unsigned char checksum[METADATA_CHECKSUM_SIZE] = { '\0' };
 
     struct mem __attribute__ ((__cleanup__(safe_unmmap))) src_m = {
         .m = NULL,
