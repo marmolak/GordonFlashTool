@@ -31,7 +31,7 @@ enum RET_CODES metadata_set_short_label(const char *const short_label, struct me
 enum RET_CODES metadata_parse(const int fd);
 
 enum RET_CODES metadata_write(const int fd, const unsigned int slot, const struct metadata *const meta_p);
-enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, const unsigned char *const checksum, const uint32_t img_size);
+enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, const unsigned char *checksum, const uint32_t img_size);
 enum RET_CODES metadata_write_short_label(const int fd, const unsigned int slot, const char *const short_label);
 
 #endif /* METADATA_H */

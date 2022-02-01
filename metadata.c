@@ -71,7 +71,7 @@ enum RET_CODES metadata_write(const int fd, const unsigned int slot, const struc
     return FAIL_SUCC;
 }
 
-enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, const unsigned char *const checksum, const uint32_t img_size)
+enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, const unsigned char *checksum, const uint32_t img_size)
 {
     const uint64_t offset_checksum = (MAGIC_OFFSET * slot) + IMAGE_SIZE + offsetof(struct metadata, checksum);
     const uint64_t offset_img_size = (MAGIC_OFFSET * slot) + IMAGE_SIZE + offsetof(struct metadata, img_size);
@@ -81,7 +81,7 @@ enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, co
     assert(checksum != NULL);
 
     CHECK_ERROR_GENERIC(lseek(fd, offset_checksum, SEEK_SET), off_t, FAIL_LSEEK);
-    CHECK_ERROR(write(fd, (void *) checksum, METADATA_CHECKSUM_SIZE), FAIL_WRITE);
+    CHECK_ERROR(write(fd, (const void *) checksum, METADATA_CHECKSUM_SIZE), FAIL_WRITE);
 
     CHECK_ERROR_GENERIC(lseek(fd, offset_img_size, SEEK_SET), off_t, FAIL_LSEEK);
     CHECK_ERROR(write(fd, (void *) &img_size_right_endian, sizeof(img_size)), FAIL_WRITE);

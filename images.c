@@ -33,6 +33,7 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     ssize_t size_bytes;
     ssize_t n;
     char *m_p;
+    unsigned char checksum[METADATA_CHECKSUM_SIZE];
 
     struct mem __attribute__ ((__cleanup__(safe_unmmap))) src_m = {
         .m = NULL,
@@ -62,7 +63,6 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     safe_close(&fd_src);
 
     /* compute md5 sum */
-    unsigned char checksum[METADATA_CHECKSUM_SIZE];
     md5sum(src_m.m, src_m.len, checksum);
 
 /* MacOS 12 on /dev/rdisk returns: Operation not supported by device... so just use write. */
