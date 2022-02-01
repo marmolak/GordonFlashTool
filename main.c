@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <inttypes.h>
 
 #include "images.h"
 #include "metadata.h"
@@ -47,7 +48,7 @@ enum RET_CODES parse_slot(const int fd, unsigned int slot)
 	const uint64_t offset = slot * MAGIC_OFFSET;
 	const uint64_t start_block = offset / 512;
 	const uint64_t end_block = start_block + (IMAGE_SIZE / 512);
-	printf("%3u - %8llu,%-7llu - 0x" UINT64_PRINTF_FORMAT " ", slot, start_block, end_block, offset);
+	printf("%3u - %8" PRIu64 ",%-7" PRIu64 " - 0x%.8" PRIX64 " ", slot, start_block, end_block, offset);
 
 	CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
 	parse_fat(fd);

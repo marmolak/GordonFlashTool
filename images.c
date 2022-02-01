@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "file_dev_ops.h"
 #include "crypt_md5.h"
@@ -52,7 +53,7 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     }
 
     if (src_m.len > IMAGE_SIZE) {
-        fprintf(stderr, "Source image size: %llu is bigger than %llu. Result on destination will be truncated.",
+        fprintf(stderr, "Source image size: %" PRIu64 " is bigger than %" PRIu64 ". Result on destination will be truncated.",
                 src_m.len, IMAGE_SIZE);
         src_m.len = IMAGE_SIZE;
     }

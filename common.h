@@ -10,11 +10,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "banned.h"
 
-#define MAGIC_OFFSET 1572864llu
-#define IMAGE_SIZE 1474560llu
+#define MAGIC_OFFSET ((uint64_t) 1572864u)
+#define IMAGE_SIZE ((uint64_t) 1474560u)
 #define LABEL_OFFSET 3u
 #define IMAGES_GAP 98304
 
@@ -69,8 +70,6 @@ void safe_close(int *const fd);
 /* Compatibility */
 #if defined(__APPLE__) && defined(__MACH__)
 
-#define UINT64_PRINTF_FORMAT "%.8llx"
-
 #define ADDITIONAL_OPEN_FLAGS 0
 
 #if defined(__BIG_ENDIAN__)
@@ -104,8 +103,6 @@ void safe_close(int *const fd);
 #define BSWAP32_ONLY_ON_LE(value) (value)
 
 #endif
-
-#define UINT64_PRINTF_FORMAT "%.8lx"
 
 #define ADDITIONAL_OPEN_FLAGS O_LARGEFILE
 
