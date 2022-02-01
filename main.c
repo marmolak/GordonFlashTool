@@ -121,6 +121,13 @@ int main(int argc, char **argv)
 
     enum RET_CODES rc;
 
+    if (argc < 2) {
+        usage();
+        printf("\n");
+        help();
+        return EXIT_SUCCESS;
+    }
+
 	while ((opt = getopt(argc, argv, "s:d:w:i:h")) != -1) {
 		switch (opt) {
 		case 'w':
