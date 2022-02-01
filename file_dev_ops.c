@@ -31,16 +31,15 @@ enum RET_CODES  blkgetsize(int fd, uint64_t *psize)
 #ifdef BLKGETSIZE64
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE64, psize), FAIL_IOCTL);
 
-    return FAIL_SUCC;
 #elif BLKGETSIZE
 	unsigned long sectors = 0;
 	CHECK_ERROR(ioctl(fd, BLKGETSIZE, &sectors), FAIL_IOCTL);
 	*psize = sectors * 512ULL;
 
-    return FAIL_SUCC;
 #else
 # error "Linux configuration error (blkgetsize)"
 #endif
+    return FAIL_SUCC;
 }
 
 #else
