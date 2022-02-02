@@ -207,8 +207,13 @@ int main(int argc, char **argv)
 	}
 
 
-    if (slot != UINT_MAX && export_file_name_p != NULL)
+    if (export_file_name_p != NULL)
     {
+        if (slot == UINT_MAX) {
+            fprintf(stderr, "You need to specify slot number via -s switch.\n");
+            return EXIT_FAILURE;
+        }
+ 
         rc = images_export_image(fd, slot, export_file_name_p);
         if (rc != FAIL_SUCC) {
             return rc;
