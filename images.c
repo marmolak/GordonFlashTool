@@ -133,7 +133,12 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
 
     src_m.len = metadata_get_img_size(&meta);
 
-    fd_dst = CHECK_ERROR(open(export_file_name, O_WRONLY | O_CREAT | O_SYNC | ADDITIONAL_OPEN_FLAGS, S_IRUSR | S_IWUSR), FAIL_OPEN);
+    if (export_file_name[0] == '-' && export_file_name[1] == '\0')
+    {
+        fd_dst = STDOUT_FILENO;
+    } else {
+        fd_dst = CHECK_ERROR(open(export_file_name, O_WRONLY | O_CREAT | O_SYNC | ADDITIONAL_OPEN_FLAGS, S_IRUSR | S_IWUSR), FAIL_OPEN);
+    }
 
     CHECK_ERROR(lseek(fd_src, src_offset, SEEK_SET), FAIL_LSEEK);
     src_m.m = CHECK_ERROR_MMAP(mmap(NULL, src_m.len, PROT_READ, MAP_SHARED, fd_src, 0), FAIL_MMAP);

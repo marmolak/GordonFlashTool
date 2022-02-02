@@ -206,7 +206,6 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 
     if (slot != UINT_MAX && export_file_name_p != NULL)
     {
@@ -237,6 +236,7 @@ int main(int argc, char **argv)
 	}
 
 	if (slot != UINT_MAX && !write_mode) {
+        printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 		rc = parse_slot(fd, slot);
         if (rc != FAIL_SUCC) {
             return rc;
@@ -258,6 +258,7 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+	printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 	for (slot = 0; slot < num_of_fdds; ++slot)
 	{
 		parse_slot(fd, slot);
