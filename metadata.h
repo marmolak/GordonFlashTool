@@ -28,7 +28,11 @@ STATIC_ASSERT(sizeof(struct metadata) <= IMAGES_GAP, Size_of_struct_metadata_mus
 struct metadata metadata_init(void);
 
 enum RET_CODES metadata_set_short_label(const char *const short_label, struct metadata *const meta_p);
-enum RET_CODES metadata_parse(const int fd);
+
+void metadata_set_img_size(const uint32_t img_size, struct metadata *const meta_p);
+uint32_t metadata_get_img_size(const struct metadata *const meta_p);
+
+enum RET_CODES metadata_parse_slot(const int fd, const unsigned int slot, struct metadata *const meta_p);
 
 enum RET_CODES metadata_write(const int fd, const unsigned int slot, const struct metadata *const meta_p);
 enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, const unsigned char *checksum, const uint32_t img_size);

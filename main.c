@@ -48,6 +48,10 @@ enum RET_CODES parse_slot(const int fd, unsigned int slot)
 	const uint64_t offset = slot * MAGIC_OFFSET;
 	const uint64_t start_block = offset / 512;
 	const uint64_t end_block = start_block + (IMAGE_SIZE / 512);
+    struct metadata meta;
+    enum RET_CODES rc;
+    int p;
+
 	printf("%3u - %8" PRIu64 ",%-7" PRIu64 " - 0x%.8" PRIX64 " ", slot, start_block, end_block, offset);
 
 	CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
@@ -56,34 +60,29 @@ enum RET_CODES parse_slot(const int fd, unsigned int slot)
 	printf(" ");
 
 	/* There is small (98304 bytes) gap among images, so let's use it for metadata */
-	CHECK_ERROR_GENERIC(lseek(fd, offset + IMAGE_SIZE, SEEK_SET), off_t, FAIL_LSEEK);
-	metadata_parse(fd);
+	rc = metadata_parse_slot(fd, slot, &meta);
+    if (rc == FAIL_NOMETA) {
+        printf("No metadata found.\n");
+        return FAIL_SUCC;
+    }
+    if (rc != FAIL_SUCC)
+    {
+        return rc;
+    }
+
+    printf("%.63s - ", meta.short_label);
+    for (p = 0; p < 16; ++p)
+    {
+        printf("%.2x", meta.checksum[p]);
+    }
 	printf("\n");
-
-    return FAIL_SUCC;
-}
-
-static enum RET_CODES metadata_write_helper(const int fd, const unsigned int slot, const char *const metadata_short_label)
-{
-	struct metadata meta = metadata_init();
-    enum RET_CODES rc;
-
-	rc = metadata_set_short_label(metadata_short_label, &meta);
-    if (rc != FAIL_SUCC) {
-        return rc;
-    }
-
-	rc = metadata_write(fd, slot, &meta);
-    if (rc != FAIL_SUCC) {
-        return rc;
-    }
 
     return FAIL_SUCC;
 }
 
 static void usage(void)
 {
-	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file']\n");
+	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file'] [-e 'export_file'] [-h]\n");
 }
 
 void help(void)
@@ -111,7 +110,8 @@ int main(int argc, char **argv)
 	unsigned int slot = UINT_MAX;
 	bool write_mode = false;
 	bool write_meta_short_label = false;
-	char *metadata_short_label = NULL;
+	char *metadata_short_label_p = NULL;
+    char *export_file_name_p = NULL;
 
 	int fd __attribute__ ((__cleanup__(safe_close))) = -1;
 	int open_flags;
@@ -129,12 +129,12 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-	while ((opt = getopt(argc, argv, "s:d:w:i:h")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:w:i:e:h")) != -1) {
 		switch (opt) {
 		case 'w':
 			write_mode = true;
 			write_meta_short_label = true;
-			metadata_short_label = optarg;
+			metadata_short_label_p = optarg;
 			break;
 
 		case 'd':
@@ -151,6 +151,11 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+
+        case 'e': {
+            export_file_name_p = optarg;
+            break;
+        }
 
 		/* Input image */
 		case 'i':
@@ -177,6 +182,10 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
 	}
 
+    if (export_file_name_p != NULL) {
+        write_mode = false;
+    }
+
 	open_flags = write_mode ? O_RDWR | O_SYNC : O_RDONLY;
 	open_flags |= ADDITIONAL_OPEN_FLAGS;
 	fd = CHECK_ERROR(open(image_name_p, open_flags), FAIL_OPEN);
@@ -199,9 +208,18 @@ int main(int argc, char **argv)
 
 	printf("Num of slots: 0 - %u\n", num_of_fdds - 1);
 
+    if (slot != UINT_MAX && export_file_name_p != NULL)
+    {
+        rc = images_export_image(fd, slot, export_file_name_p);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
+
+        return EXIT_SUCCESS;
+    }
+
 	if (slot != UINT_MAX && image_name_p != NULL && src_image_name_p != NULL)
 	{
-
 		rc = images_put_image_to(fd, slot, src_image_name_p);
         if (rc != FAIL_SUCC) {
             return rc;
@@ -209,7 +227,7 @@ int main(int argc, char **argv)
          }
 
 		if (write_meta_short_label) {
-			rc = metadata_write_helper(fd, slot, metadata_short_label);
+            rc = metadata_write_short_label(fd, slot, metadata_short_label_p);
             if (rc != FAIL_SUCC) {
                 return rc;
             }
@@ -233,7 +251,7 @@ int main(int argc, char **argv)
 	}
 
 	if (write_meta_short_label) {
-		rc = metadata_write_helper(fd, slot, metadata_short_label);
+        rc = metadata_write_short_label(fd, slot, metadata_short_label_p);
         if (rc != FAIL_SUCC) {
             return rc;
         }

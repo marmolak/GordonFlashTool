@@ -23,7 +23,7 @@ struct metadata metadata_init(void)
     return meta;
 }
 
-enum RET_CODES metadata_set_short_label(const char *const short_label, struct metadata *const meta_p)
+    enum RET_CODES metadata_set_short_label(const char *const short_label, struct metadata *const meta_p)
 {
     assert(short_label != NULL);
     assert(meta_p != NULL);
@@ -40,25 +40,54 @@ enum RET_CODES metadata_set_short_label(const char *const short_label, struct me
     return FAIL_SUCC;
 }
 
-enum RET_CODES metadata_parse(const int fd)
+
+void metadata_set_img_size(const uint32_t img_size, struct metadata *const meta_p)
+{
+    assert(meta_p != NULL);
+
+    meta_p->img_size = (img_size);
+}
+
+uint32_t metadata_get_img_size(const struct metadata *const meta_p)
+{
+    uint32_t img_size;
+
+    assert(meta_p != NULL);
+    
+    img_size = ntohl(meta_p->img_size);
+
+    if (img_size > IMAGE_SIZE) {
+        img_size = IMAGE_SIZE;
+    }
+
+    return img_size;
+}
+
+static enum RET_CODES metadata_parse(const int fd, struct metadata *const meta_p)
 {
     struct metadata meta;
-    unsigned int p;
     
     CHECK_ERROR_GENERIC(read(fd, &meta, sizeof(meta)), ssize_t, FAIL_READ);
     if (ntohl(meta.magic) != METADATA_MAGIC) {
-        printf("No metadata found.");
-        return FAIL_SUCC;
+        return FAIL_NOMETA;
     }
 
-    printf("%.63s - ", meta.short_label);
-    for (p = 0; p < 16; ++p)
-    {
-        printf("%.2x", meta.checksum[p]);
-    }
-
+    memcpy(meta_p, &meta, sizeof(struct metadata));
     return FAIL_SUCC;
 }
+
+
+enum RET_CODES metadata_parse_slot(const int fd, const unsigned int slot, struct metadata *const meta_p)
+{
+    const uint64_t offset = slot * MAGIC_OFFSET + IMAGE_SIZE;
+    enum RET_CODES rc;
+
+    CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
+    rc = metadata_parse(fd, meta_p);
+
+    return rc;
+}
+
 
 enum RET_CODES metadata_write(const int fd, const unsigned int slot, const struct metadata *const meta_p)
 {

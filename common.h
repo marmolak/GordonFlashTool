@@ -39,6 +39,7 @@ enum RET_CODES
 	FAIL_IOCTL      = 20,
     FAIL_MMAP       = 30,
     FAIL_CHRNOTSUPP = 40,
+    FAIL_NOMETA     = 45,
     FAIL_FAIL       = 50,
 };
 
