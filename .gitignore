@@ -12,6 +12,7 @@
 gordon
 *.swp
 *.o
+*.img
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
