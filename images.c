@@ -1,5 +1,6 @@
 #include "images.h"
 
+#include <assert.h>
 #include <sys/mman.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -125,11 +126,14 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
         .len = IMAGE_SIZE
     };
 
+    assert(export_file_name != NULL);
+
     rc = metadata_parse_slot(fd_src, slot, &meta);
     if (rc != FAIL_SUCC) {
         fprintf(stderr, "Unable to read/parse/find metadata.\n");
         return FAIL_FAIL;
     }
+
 
     src_m.len = metadata_get_img_size(&meta);
 
