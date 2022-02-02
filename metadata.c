@@ -88,7 +88,7 @@ enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, co
     return FAIL_SUCC;
 }
 
-enum RET_CODES metadata_write_short_label_only(const int fd, const unsigned int slot, const char *const short_label)
+enum RET_CODES metadata_write_short_label(const int fd, const unsigned int slot, const char *const short_label)
 {
     const uint64_t offset = (MAGIC_OFFSET * slot) + IMAGE_SIZE + offsetof(struct metadata, short_label);
     const size_t len = ({

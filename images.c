@@ -25,6 +25,7 @@ static void safe_unmmap(struct mem *m_a)
     munmap(m_a->m, m_a->len);
 }
 
+/* Put image to selected slot an initialize metadata. */
 enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const char *const source)
 {
     enum RET_CODES rc;
@@ -33,6 +34,8 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     ssize_t size_bytes;
     ssize_t n;
     char *m_p;
+
+    struct metadata meta = metadata_init();
     unsigned char checksum[METADATA_CHECKSUM_SIZE] = { '\0' };
 
     struct mem __attribute__ ((__cleanup__(safe_unmmap))) src_m = {
@@ -90,7 +93,11 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     memcpy(dst_m.m, src_m.m, src_m.len);
 #endif
 
-    rc = metadata_write_checksum(fd_dst, slot, checksum, src_m.len);
+    /* Should be wrapped into functions for metedata handling. */
+    meta.img_size = src_m.len;
+    memcpy(meta.checksum, checksum, METADATA_CHECKSUM_SIZE);
+
+    rc = metadata_write(fd_dst, slot, &meta);
     if (rc != FAIL_SUCC) {
         return rc;
     }

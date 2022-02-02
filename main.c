@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 	char *src_image_name_p = NULL;
 	unsigned int slot = UINT_MAX;
 	bool write_mode = false;
-	bool write_meta = false;
+	bool write_meta_short_label = false;
 	char *metadata_short_label = NULL;
 
 	int fd __attribute__ ((__cleanup__(safe_close))) = -1;
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case 'w':
 			write_mode = true;
-			write_meta = true;
+			write_meta_short_label = true;
 			metadata_short_label = optarg;
 			break;
 
@@ -201,17 +201,19 @@ int main(int argc, char **argv)
 
 	if (slot != UINT_MAX && image_name_p != NULL && src_image_name_p != NULL)
 	{
-		if (write_meta) {
+
+		rc = images_put_image_to(fd, slot, src_image_name_p);
+        if (rc != FAIL_SUCC) {
+            return rc;
+   
+         }
+
+		if (write_meta_short_label) {
 			rc = metadata_write_helper(fd, slot, metadata_short_label);
             if (rc != FAIL_SUCC) {
                 return rc;
             }
 		}
-
-		rc = images_put_image_to(fd, slot, src_image_name_p);
-        if (rc != FAIL_SUCC) {
-            return rc;
-        }
 
 		return EXIT_SUCCESS;
 	}
@@ -230,7 +232,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (write_meta) {
+	if (write_meta_short_label) {
 		rc = metadata_write_helper(fd, slot, metadata_short_label);
         if (rc != FAIL_SUCC) {
             return rc;
