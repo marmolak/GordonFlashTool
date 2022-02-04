@@ -202,7 +202,7 @@ int main(int argc, char **argv)
 
 	if (slot != UINT_MAX && slot >= num_of_fdds)
 	{
-		fprintf(stderr, "Maximum number of slots is 999. Allowed values 0 to 999.\n");
+		fprintf(stderr, "Maximum number of slots is %u. Allowed values 0 to %u.\n", num_of_fdds - 1, num_of_fdds - 1);
 		return EXIT_FAILURE;
 	}
 
