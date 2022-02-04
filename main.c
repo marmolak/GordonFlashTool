@@ -249,13 +249,16 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	if (write_mode && slot == UINT_MAX)
-	{
-		fprintf(stderr,"You need to specify short label.\n");
-		return EXIT_FAILURE;
-	}
-
 	if (write_meta_short_label) {
+        if (metadata_short_label_p == NULL) {
+            fprintf(stderr, "You need to specify short label.\n");
+            return EXIT_FAILURE;
+        }
+        if (slot == UINT_MAX) {
+            fprintf(stderr, "You need to specify slot number.\n");
+            return EXIT_FAILURE;
+        }
+
         rc = metadata_write_short_label(fd, slot, metadata_short_label_p);
         if (rc != FAIL_SUCC) {
             return rc;
