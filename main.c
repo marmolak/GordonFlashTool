@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 		case 's': {
 			char *endptr = NULL;
 			errno = 0;
-			slot = (unsigned int) strtoul(optarg, &endptr, 10);
+			slot = (__typeof__(slot)) strtoul(optarg, &endptr, 10);
 			if (errno != 0 || *endptr != '\0') {
 				usage();
                 return EXIT_SUCCESS;
