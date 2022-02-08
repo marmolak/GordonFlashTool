@@ -1,9 +1,9 @@
 CFLAGS = -std=gnu99 -Wall -Wextra
-objects = main.o metadata.o common.o images.o file_dev_ops.o crypt_md5.o
-files = main.c metadata.c common.c images.c file_dev_ops.c crypt_md5.c
+objects = main.o metadata.o common.o images.o file_dev_ops.o crypt_md5.o fat_driver.o
+files = main.c metadata.c common.c images.c file_dev_ops.c crypt_md5.c fat/fat_driver.c
 
-RELEASE_FLAGS = -DNDEBUG
-DEBUG_FLAGS = -O0 -ggdb3
+RELEASE_FLAGS = -DNDEBUG -I.
+DEBUG_FLAGS = -O0 -ggdb3 -I.
 
 .PHONY: all
 all:

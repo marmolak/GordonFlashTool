@@ -1,4 +1,4 @@
-#include "images.h"
+#include "common.h"
 
 #include <assert.h>
 #include <sys/mman.h>
@@ -11,9 +11,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "images.h"
 #include "file_dev_ops.h"
 #include "crypt_md5.h"
 #include "metadata.h"
+#include "fat/fat_driver.h"
 
 struct mem {
     void *m;
@@ -155,6 +157,20 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
         n -= size_bytes;
         m_p += n;
     } while (n > 0);
+
+    return FAIL_SUCC;
+}
+
+
+enum RET_CODES images_simple_format(int fd, unsigned int slot)
+{
+    const uint64_t offset = slot * MAGIC_OFFSET;
+    fat_12_table_buff_t fat_buff;
+
+    init_fat12_blank_floppy(&fat_buff);
+
+    CHECK_ERROR(lseek(fd, offset, SEEK_SET), FAIL_LSEEK);
+    CHECK_ERROR(write(fd, (const void *) fat_buff, FAT_ALL_METADATA_SIZE), FAIL_WRITE);
 
     return FAIL_SUCC;
 }

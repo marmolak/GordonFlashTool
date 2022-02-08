@@ -108,8 +108,11 @@ int main(int argc, char **argv)
 	char *image_name_p = NULL;
 	char *src_image_name_p = NULL;
 	unsigned int slot = UINT_MAX;
+
 	bool write_mode = false;
 	bool write_meta_short_label = false;
+    bool format_slot = false;
+
 	char *metadata_short_label_p = NULL;
     char *export_file_name_p = NULL;
 
@@ -120,6 +123,7 @@ int main(int argc, char **argv)
 	unsigned int potential_num_of_drives;
 	unsigned int num_of_fdds = GOTEK_MAX_FDDS;
 
+
     enum RET_CODES rc;
 
     if (argc < 2) {
@@ -129,7 +133,7 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-	while ((opt = getopt(argc, argv, "s:d:w:i:e:h")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:w:i:e:hf")) != -1) {
 		switch (opt) {
 		case 'w':
 			write_mode = true;
@@ -168,6 +172,11 @@ int main(int argc, char **argv)
             return EXIT_SUCCESS;
 			break;
 
+        case 'f':
+            write_mode = true;
+            format_slot = true;
+            break;
+
 		default: /* '?' */
 			usage();
             return EXIT_SUCCESS;
@@ -199,6 +208,20 @@ int main(int argc, char **argv)
 	if (potential_num_of_drives < GOTEK_MAX_FDDS) {
 		num_of_fdds = potential_num_of_drives;
 	}
+
+    if (format_slot) {
+        if (slot == UINT_MAX) {
+            fprintf(stderr, "You need to specify slot number, via -s switch, to format.\n");
+            return EXIT_FAILURE;
+        }
+
+        rc = images_simple_format(fd, slot);
+        if (rc != FAIL_SUCC) {
+            return rc;
+        }
+
+        return EXIT_SUCCESS;
+    }
 
 	if (slot != UINT_MAX && slot >= num_of_fdds)
 	{

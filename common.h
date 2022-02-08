@@ -68,6 +68,14 @@ enum RET_CODES
 /* Functions */
 void safe_close(int *const fd);
 
+/* Macros */
+#define BSWAP16(value) \
+((((value) & 0xff) << 8) | ((value) >> 8))
+
+#define BSWAP32(value) \
+(((uint32_t)BSWAP16_ONLY_ON_LE((uint16_t)((value) & 0xffff)) << 16) | \
+(uint32_t)BSWAP16_ONLY_ON_LE((uint16_t)((value) >> 16)))
+
 /* Compatibility */
 #if defined(__APPLE__) && defined(__MACH__)
 
@@ -78,14 +86,16 @@ void safe_close(int *const fd);
 #define BSWAP16_ONLY_ON_LE(value) (value)
 #define BSWAP32_ONLY_ON_LE(value) (value)
 
+#define BSWAP16_ONLY_ON_BE(value) BSWAP16(value)
+#define BSWAP32_ONLY_ON_BE(value) BSWAP32(value)
+
 #else
 
-#define BSWAP16_ONLY_ON_LE(value) \
-((((value) & 0xff) << 8) | ((value) >> 8))
+#define BSWAP16_ONLY_ON_LE(value) BSWAP16(value)
+#define BSWAP32_ONLY_ON_LE(value) BSWAP32(value)
 
-#define BSWAP32_ONLY_ON_LE(value) \
-(((uint32_t)BSWAP16_ONLY_ON_LE((uint16_t)((value) & 0xffff)) << 16) | \
-(uint32_t)BSWAP16_ONLY_ON_LE((uint16_t)((value) >> 16)))
+#define BSWAP16_ONLY_ON_BE(value) (value)
+#define BSWAP32_ONLY_ON_BE(value) (value)
 
 #endif
 
@@ -98,10 +108,16 @@ void safe_close(int *const fd);
 #define BSWAP16_ONLY_ON_LE(value) (htobe16(value))
 #define BSWAP32_ONLY_ON_LE(value) (htobe32(value))
 
+#define BSWAP16_ONLY_ON_BE(value) (value)
+#define BSWAP32_ONLY_ON_BE(value) (value)
+
 #else
 
 #define BSWAP16_ONLY_ON_LE(value) (value)
 #define BSWAP32_ONLY_ON_LE(value) (value)
+
+#define BSWAP16_ONLY_ON_BE(value) (htobe16(value))
+#define BSWAP32_ONLY_ON_BE(value) (htobe32(value))
 
 #endif
 
