@@ -16,6 +16,7 @@
 #include "crypt_md5.h"
 #include "metadata.h"
 #include "fat/fat_driver.h"
+#include "tools.h"
 
 struct mem {
     void *m;
@@ -37,9 +38,6 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
     enum RET_CODES rc;
     int fd_src __attribute__ ((__cleanup__(safe_close))) = -1;
     const uint64_t dst_offset = slot * MAGIC_OFFSET;
-    ssize_t size_bytes;
-    ssize_t n;
-    char *m_p;
 
     struct metadata meta = metadata_init();
     unsigned char checksum[METADATA_CHECKSUM_SIZE] = { '\0' };
@@ -77,22 +75,15 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
 /* MacOS 12 on /dev/rdisk returns: Operation not supported by device... so just use write. */
 #if defined(__APPLE__) && defined(__MACH__)
     (void) dst_m;
-    n = src_m.len;
-    m_p = (char *) src_m.m;
 
     CHECK_ERROR(lseek(fd_dst, dst_offset, SEEK_SET), FAIL_LSEEK);
 
-    do {
-        /* Don't handle syscall restart for now. */
-        size_bytes = CHECK_ERROR(write(fd_dst, m_p, n), FAIL_WRITE);
-        n -= size_bytes;
-        m_p += n;
-    } while (n > 0);
+    rc = write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
 
 #else
-    (void) n;
-    (void) m_p;
-    (void) size_bytes;
 
     /* set and map destionation */
     dst_m.m = CHECK_ERROR_MMAP(mmap(NULL, dst_m.len, PROT_WRITE, MAP_SHARED, fd_dst, dst_offset), FAIL_MMAP);
@@ -118,9 +109,6 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
     const uint64_t src_offset = slot * MAGIC_OFFSET;
     int fd_dst __attribute__ ((__cleanup__(safe_close))) = -1;
     struct metadata meta;
-    ssize_t size_bytes;
-    ssize_t n;
-    char *m_p;
     enum RET_CODES rc;
 
     struct mem __attribute__ ((__cleanup__(safe_unmmap))) src_m = {
@@ -149,14 +137,10 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
     CHECK_ERROR(lseek(fd_src, src_offset, SEEK_SET), FAIL_LSEEK);
     src_m.m = CHECK_ERROR_MMAP(mmap(NULL, src_m.len, PROT_READ, MAP_SHARED, fd_src, 0), FAIL_MMAP);
 
-    n = src_m.len;
-    m_p = (char *) src_m.m;
-    do {
-        /* Don't handle syscall restart for now. */
-        size_bytes = CHECK_ERROR(write(fd_dst, m_p, n), FAIL_WRITE);
-        n -= size_bytes;
-        m_p += n;
-    } while (n > 0);
+    rc = write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
 
     return FAIL_SUCC;
 }
@@ -166,11 +150,16 @@ enum RET_CODES images_simple_format(int fd, unsigned int slot)
 {
     const uint64_t offset = slot * MAGIC_OFFSET;
     fat_12_table_buff_t fat_buff;
+    enum RET_CODES rc;
 
     init_fat12_blank_floppy(&fat_buff);
 
     CHECK_ERROR(lseek(fd, offset, SEEK_SET), FAIL_LSEEK);
-    CHECK_ERROR(write(fd, (const void *) fat_buff, FAT_ALL_METADATA_SIZE), FAIL_WRITE);
+
+    rc = write_content_to(fd, (uint8_t *) &fat_buff, sizeof(fat_buff));
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
 
     return FAIL_SUCC;
 }
