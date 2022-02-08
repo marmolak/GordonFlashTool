@@ -146,10 +146,11 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
 }
 
 
-enum RET_CODES images_simple_format(int fd, unsigned int slot)
+enum RET_CODES images_simple_format(int fd, const unsigned int slot)
 {
     const uint64_t offset = slot * MAGIC_OFFSET;
     fat_12_table_buff_t fat_buff;
+    const struct metadata meta = metadata_init();
     enum RET_CODES rc;
 
     init_fat12_blank_floppy(&fat_buff);
@@ -160,6 +161,9 @@ enum RET_CODES images_simple_format(int fd, unsigned int slot)
     if (rc != FAIL_SUCC) {
         return rc;
     }
+
+    /* Wipe metadata */
+    metadata_write(fd, slot, &meta);
 
     return FAIL_SUCC;
 }
