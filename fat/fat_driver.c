@@ -46,7 +46,7 @@ void init_fat12_blank_floppy(fat_12_table_buff_t_p output)
 static struct bootsector33 init_blank_fat_33(void)
 {
     struct bootsector33 boot_sector = {
-        .bsJump         = { 0x90, 0x3C, 0xEB }, /* Jump to nowhere for now */
+        .bsJump         = { 0xEB, 0x3C, 0x90 }, /* Jump to nowhere for now */
         .bsOemName      = "GFT  1.0",
         .bsBPB          = { '\0' },
         .bsDriveNumber  = 0,
