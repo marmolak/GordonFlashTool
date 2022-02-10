@@ -9,6 +9,10 @@
 #include "fat/bootsect.h"
 #include "fat/direntry.h"
 
+#ifdef BOOT_CODE
+#include "asm/boot_code_generated.h"
+#endif
+
 /* Function declarations */
 static struct bootsector33 init_blank_fat_33(void);
 
@@ -46,7 +50,7 @@ void init_fat12_blank_floppy(fat_12_table_buff_t_p output)
 static struct bootsector33 init_blank_fat_33(void)
 {
     struct bootsector33 boot_sector = {
-        .bsJump         = { 0xEB, 0x3C, 0x90 }, /* Jump to nowhere for now */
+        .bsJump         = { 0xEB, 0x1E, 0x90 },
         .bsOemName      = "GFT  1.0",
         .bsBPB          = { '\0' },
         .bsDriveNumber  = 0,
@@ -55,7 +59,7 @@ static struct bootsector33 init_blank_fat_33(void)
         .bsBootSectSig1 = BOOTSIG1,
     };
 
-    const struct bpb33 bpd = {
+    const struct bpb33 bpb = {
         .bpbBytesPerSec = BSWAP16_ONLY_ON_BE(512),
         .bpbSecPerClust = 1,
         .bpbResSectors  = BSWAP16_ONLY_ON_BE(1),
@@ -69,7 +73,11 @@ static struct bootsector33 init_blank_fat_33(void)
         .bpbHiddenSecs  = BSWAP16_ONLY_ON_BE(0),
     };
 
-    memcpy((void *) boot_sector.bsBPB, (const void *) &bpd, sizeof(boot_sector.bsBPB));
+#ifdef BOOT_CODE
+    memcpy(boot_sector.bsBootCode, (const void *) boot_code, sizeof(boot_code));
+#endif
+
+    memcpy((void *) boot_sector.bsBPB, (const void *) &bpb, sizeof(boot_sector.bsBPB));
 
     return boot_sector;
 }
