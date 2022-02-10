@@ -82,7 +82,7 @@ enum RET_CODES parse_slot(const int fd, unsigned int slot)
 
 static void usage(void)
 {
-	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file'] [-e 'export_file'] [-h]\n");
+	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file'] [-e 'export_file'] [-h] [-f]\n");
 }
 
 void help(void)
