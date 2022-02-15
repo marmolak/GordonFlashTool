@@ -78,7 +78,7 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
 
     CHECK_ERROR(lseek(fd_dst, dst_offset, SEEK_SET), FAIL_LSEEK);
 
-    rc = write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
+    rc = tools_write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
     if (rc != FAIL_SUCC) {
         return rc;
     }
@@ -124,7 +124,6 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
         return FAIL_FAIL;
     }
 
-
     src_m.len = metadata_get_img_size(&meta);
 
     if (export_file_name[0] == '-' && export_file_name[1] == '\0')
@@ -135,12 +134,22 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
     }
 
     CHECK_ERROR(lseek(fd_src, src_offset, SEEK_SET), FAIL_LSEEK);
-    src_m.m = CHECK_ERROR_MMAP(mmap(NULL, src_m.len, PROT_READ, MAP_SHARED, fd_src, 0), FAIL_MMAP);
 
-    rc = write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
+#if defined(__APPLE__) && defined(__MACH__)
+
+    rc = tools_read_from_write_to(fd_src, fd_dst, src_m.len);
     if (rc != FAIL_SUCC) {
         return rc;
     }
+
+#else 
+    src_m.m = CHECK_ERROR_MMAP(mmap(NULL, src_m.len, PROT_READ | PROT_WRITE, MAP_SHARED, fd_src, 0), FAIL_MMAP);
+
+    rc = tools_write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
+    if (rc != FAIL_SUCC) {
+        return rc;
+    }
+#endif
 
     return FAIL_SUCC;
 }
@@ -157,7 +166,7 @@ enum RET_CODES images_simple_format(int fd, const unsigned int slot)
 
     CHECK_ERROR(lseek(fd, offset, SEEK_SET), FAIL_LSEEK);
 
-    rc = write_content_to(fd, (uint8_t *) &fat_buff, sizeof(fat_buff));
+    rc = tools_write_content_to(fd, (uint8_t *) &fat_buff, sizeof(fat_buff));
     if (rc != FAIL_SUCC) {
         return rc;
     }
