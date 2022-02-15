@@ -31,6 +31,7 @@ static enum RET_CODES parse_fat(const int fd)
 		((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_1)
 		&& ((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_2)
 		&& ((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_3)
+		&& ((magic_mark & 0xFFFFFF00u) != FAT_MAGIC_4)
 	) {
 		printf("'NO FAT MAGIC FOUND'");
 		return FAIL_FAIL;
