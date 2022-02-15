@@ -1,10 +1,5 @@
 bits 16
-org 7c00h ; boot code
-; dos binary org 100h
-
-; 0x000b8000 -> color
-; 14 - yellow
-; 4 - red
+org 0x7c00 ; boot code
 
 start:
 	jmp do
@@ -12,12 +7,13 @@ start:
 	times 32-($-$$) db 0
 do:
     nop
-    mov ax, 0
+    xor ax, ax
     mov ss, ax
     sti
-	xor ax, ax
-	mov al, 03h
-	int 10h
+    ; ax is still zero ^^^
+
+	mov al, 0x03
+	int 0x10
 
 	; make background red
 	mov ax, 0xb800
