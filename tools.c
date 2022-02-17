@@ -15,7 +15,7 @@ enum RET_CODES tools_write_content_to(int fd, uint8_t *buff, ssize_t buff_size)
 
     do {
         /* Don't handle syscall restart for now. */
-        bytes_send = CHECK_ERROR(write(fd, (const void *) bytes_p, bytes_size), FAIL_WRITE);
+        bytes_send = CHECK_ERROR_GENERIC(write(fd, (const void *) bytes_p, bytes_size), ssize_t, FAIL_WRITE);
         bytes_size -= bytes_send;
         bytes_p += bytes_send;
     } while (bytes_size > 0);
@@ -35,11 +35,11 @@ enum RET_CODES tools_read_from_write_to(int fd_src, int fd_dst, const ssize_t si
     const uint8_t *buff_p = buff;
 
     do {
-        bytes_recv = CHECK_ERROR(read(fd_src, (void *) buff, sizeof(buff)), FAIL_READ);
+        bytes_recv = CHECK_ERROR_GENERIC(read(fd_src, (void *) buff, sizeof(buff)), ssize_t, FAIL_READ);
         bytes_to_send = bytes_recv;
 
         do {
-            bytes_send = CHECK_ERROR(write(fd_dst, (const void *) buff_p, bytes_to_send), FAIL_WRITE);
+            bytes_send = CHECK_ERROR_GENERIC(write(fd_dst, (const void *) buff_p, bytes_to_send), ssize_t, FAIL_WRITE);
             bytes_to_send -= bytes_send;
             buff_p += bytes_send;
         } while (bytes_to_send > 0);

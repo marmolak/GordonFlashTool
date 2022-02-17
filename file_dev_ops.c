@@ -2,7 +2,7 @@
 
 #include <sys/stat.h>
 #include <stdio.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <sys/ioctl.h>
 
 #include "file_dev_ops.h"
@@ -11,7 +11,7 @@
 #if defined(__APPLE__) && defined(__MACH__)
 #include <sys/disk.h>
 
-enum RET_CODES blkgetsize(int fd, uint64_t *psize)
+static enum RET_CODES blkgetsize(int fd, uint64_t *psize)
 {
     uint32_t blocksize = 0;
     uint64_t nblocks;

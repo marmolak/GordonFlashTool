@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdio.h>
+#include <inttypes.h>
 #include <inttypes.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -76,7 +76,7 @@ enum RET_CODES images_put_image_to(int fd_dst, const unsigned int slot, const ch
 #if defined(__APPLE__) && defined(__MACH__)
     (void) dst_m;
 
-    CHECK_ERROR(lseek(fd_dst, dst_offset, SEEK_SET), FAIL_LSEEK);
+    CHECK_ERROR_GENERIC(lseek(fd_dst, dst_offset, SEEK_SET), off_t, FAIL_LSEEK);
 
     rc = tools_write_content_to(fd_dst, (uint8_t *) src_m.m, src_m.len);
     if (rc != FAIL_SUCC) {
@@ -133,7 +133,7 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
         fd_dst = CHECK_ERROR(open(export_file_name, O_WRONLY | O_CREAT | O_SYNC | ADDITIONAL_OPEN_FLAGS, S_IRUSR | S_IWUSR), FAIL_OPEN);
     }
 
-    CHECK_ERROR(lseek(fd_src, src_offset, SEEK_SET), FAIL_LSEEK);
+    CHECK_ERROR_GENERIC(lseek(fd_src, src_offset, SEEK_SET), off_t, FAIL_LSEEK);
 
 #if defined(__APPLE__) && defined(__MACH__)
 
@@ -164,7 +164,7 @@ enum RET_CODES images_simple_format(int fd, const unsigned int slot)
 
     init_fat12_blank_floppy(&fat_buff);
 
-    CHECK_ERROR(lseek(fd, offset, SEEK_SET), FAIL_LSEEK);
+    CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
 
     rc = tools_write_content_to(fd, (uint8_t *) &fat_buff, sizeof(fat_buff));
     if (rc != FAIL_SUCC) {

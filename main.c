@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -44,7 +44,7 @@ static enum RET_CODES parse_fat(const int fd)
 	return FAIL_SUCC;
 }
 
-enum RET_CODES parse_slot(const int fd, unsigned int slot)
+static enum RET_CODES parse_slot(const int fd, unsigned int slot)
 {
 	const uint64_t offset = slot * MAGIC_OFFSET;
 	const uint64_t start_block = offset / 512;
@@ -86,7 +86,7 @@ static void usage(void)
 	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file'] [-e 'export_file'] [-h] [-f]\n");
 }
 
-void help(void)
+static void help(void)
 {
 	static const char help[] =
 	"Output:\n"
@@ -205,7 +205,8 @@ int main(int argc, char **argv)
         return rc;
     }
 
-	potential_num_of_drives = fd_size / MAGIC_OFFSET;
+	/* Limit is 0-999 slots on real device */
+	potential_num_of_drives = (unsigned int) fd_size / MAGIC_OFFSET;
 	if (potential_num_of_drives < GOTEK_MAX_FDDS) {
 		num_of_fdds = potential_num_of_drives;
 	}

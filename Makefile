@@ -4,7 +4,7 @@ files := main.c metadata.c common.c images.c file_dev_ops.c crypt_md5.c fat/fat_
 
 ASM_DIR := asm
 
-COMMON_FLAGS := -I. -Wall -Wextra
+COMMON_FLAGS := -I./
 
 RELEASE_FLAGS := -DNDEBUG $(COMMON_FLAGS)
 DEBUG_FLAGS := -O0 -ggdb3 -Weverything $(COMMON_FLAGS)

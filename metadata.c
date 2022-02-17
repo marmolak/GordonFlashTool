@@ -34,7 +34,7 @@ struct metadata metadata_init(void)
         size_t _len = strlen(short_label);
         _len > METADATA_SHORT_LABEL_SIZE ? METADATA_SHORT_LABEL_SIZE : _len;
     });
-    memcpy((void *) meta_p->short_label, (void *) short_label, len);
+    memcpy((void *) meta_p->short_label, short_label, len);
     meta_p->short_label[METADATA_SHORT_LABEL_SIZE - 1] = '\0';
 
     return FAIL_SUCC;
@@ -96,7 +96,7 @@ enum RET_CODES metadata_write(const int fd, const unsigned int slot, const struc
     assert(meta_p != NULL);
 
     CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
-    CHECK_ERROR(write(fd, (void *) meta_p, sizeof(*meta_p)), FAIL_WRITE);
+    CHECK_ERROR_GENERIC(write(fd, meta_p, sizeof(*meta_p)), ssize_t, FAIL_WRITE);
     return FAIL_SUCC;
 }
 
@@ -110,10 +110,10 @@ enum RET_CODES metadata_write_checksum(const int fd, const unsigned int slot, co
     assert(checksum != NULL);
 
     CHECK_ERROR_GENERIC(lseek(fd, offset_checksum, SEEK_SET), off_t, FAIL_LSEEK);
-    CHECK_ERROR(write(fd, (const void *) checksum, METADATA_CHECKSUM_SIZE), FAIL_WRITE);
+    CHECK_ERROR_GENERIC(write(fd, (const void *) checksum, METADATA_CHECKSUM_SIZE), ssize_t, FAIL_WRITE);
 
     CHECK_ERROR_GENERIC(lseek(fd, offset_img_size, SEEK_SET), off_t, FAIL_LSEEK);
-    CHECK_ERROR(write(fd, (void *) &img_size_right_endian, sizeof(img_size)), FAIL_WRITE);
+    CHECK_ERROR_GENERIC(write(fd, (void *) &img_size_right_endian, sizeof(img_size)), ssize_t, FAIL_WRITE);
     return FAIL_SUCC;
 }
 
@@ -132,7 +132,7 @@ enum RET_CODES metadata_write_short_label(const int fd, const unsigned int slot,
     tmp_short_label[METADATA_SHORT_LABEL_SIZE - 1] = '\0';
 
     CHECK_ERROR_GENERIC(lseek(fd, offset, SEEK_SET), off_t, FAIL_LSEEK);
-    CHECK_ERROR(write(fd, (void *) &tmp_short_label, METADATA_SHORT_LABEL_SIZE), FAIL_WRITE);
+    CHECK_ERROR_GENERIC(write(fd, (void *) &tmp_short_label, METADATA_SHORT_LABEL_SIZE), ssize_t, FAIL_WRITE);
 
     return FAIL_SUCC;
 }

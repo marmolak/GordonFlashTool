@@ -1,7 +1,7 @@
 #ifndef METADATA_H
 #define METADATA_H
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include "common.h"
 #include "cassert.h"

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include "banned.h"
 
@@ -29,6 +29,7 @@
 
 enum RET_CODES
 {
+    FAIL_COMPILER   = -1, /* makes compiler happy and allows implicit conversion to int without warning */
     FAIL_SUCC       = EXIT_SUCCESS,
 	FAIL_ARGS       = 1,
 	FAIL_OPEN       = 2,
@@ -45,23 +46,23 @@ enum RET_CODES
 };
 
 #define CHECK_ERROR_GENERIC(f, t, e) ({ \
-    __typeof__(t) rc = (f);                                             \
-    if (rc == -1) {                                                     \
+    __typeof__(t) __rc = (f);                                             \
+    if (__rc == -1) {                                                     \
         fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno)); \
         return((e));                                                    \
     }                                                                   \
-    rc;                                                                 \
+    __rc;                                                                 \
 })
 
 #define CHECK_ERROR(f, e) CHECK_ERROR_GENERIC(f, int, e)
 
 #define CHECK_ERROR_MMAP(f, e) ({                                       \
-    void *rc_p = (f);                                                   \
-    if (rc_p == MAP_FAILED) {                                           \
+    void *__rc_p = (f);                                                   \
+    if (__rc_p == MAP_FAILED) {                                           \
         fprintf(stderr, "%s: %s: %s\n", __func__, #f, strerror(errno)); \
         return((e));                                                    \
     }                                                                   \
-    rc_p;                                                               \
+    __rc_p;                                                               \
 })
 
 #define CHECK_ERROR_NOVALRET(f, e) (void)CHECK_ERROR_GENERIC(f, int, e)

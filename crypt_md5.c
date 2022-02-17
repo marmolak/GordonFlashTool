@@ -1,5 +1,6 @@
 /* Stolen from musl codebase and updated for GordonFlashTool needs. */
 #include "common.h"
+#include "crypt_md5.h"
 
 /*
  * md5 crypt implementation
@@ -10,7 +11,7 @@
  * on error "*" is returned
  */
 #include <string.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 
 /* public domain md5 implementation based on rfc1321 and libtomcrypt */
