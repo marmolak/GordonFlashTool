@@ -1,4 +1,4 @@
-CFLAGS := -std=gnu99 -Wall -Wextra
+CFLAGS += -std=gnu99 -Wall -Wextra
 objects := main.o metadata.o common.o images.o file_dev_ops.o crypt_md5.o fat_driver.o tools.o
 files := main.c metadata.c common.c images.c file_dev_ops.c crypt_md5.c fat/fat_driver.c tools.c
 
@@ -11,8 +11,13 @@ DEBUG_FLAGS := -O0 -ggdb3 -Weverything $(COMMON_FLAGS)
 
 .PHONY: all
 all:
-	$(CC) $(CFLAGS) $(RELEASE_FLAGS) -c $(files)
-	$(CC) $(CFLAGS) $(RELEASE_FLAGS) -o gordon $(objects)
+	$(CC) $(CFLAGS) -g $(RELEASE_FLAGS) -c $(files)
+	$(CC) $(CFLAGS) -g $(RELEASE_FLAGS) -o gordon $(objects)
+
+.PHONY: install
+install: all
+	install -d $(DESTDIR)$(PREFIX)/usr/bin/
+	install -m 0755 gordon $(DESTDIR)$(PREFIX)/usr/bin/gordon
 
 .PHONY: debug
 debug:
