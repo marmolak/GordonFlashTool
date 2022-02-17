@@ -34,8 +34,14 @@ enum RET_CODES tools_read_from_write_to(int fd_src, int fd_dst, const ssize_t si
     uint8_t buff[4096 * 10];
     const uint8_t *buff_p = buff;
 
+    assert(size > 0);
+    assert(size <= IMAGE_SIZE);
+
     do {
         bytes_recv = CHECK_ERROR_GENERIC(read(fd_src, (void *) buff, sizeof(buff)), ssize_t, FAIL_READ);
+        if (bytes_recv == 0) {
+            return FAIL_SUCC;
+        }
         bytes_to_send = bytes_recv;
 
         do {

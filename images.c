@@ -120,11 +120,17 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
 
     rc = metadata_parse_slot(fd_src, slot, &meta);
     if (rc != FAIL_SUCC) {
-        fprintf(stderr, "Unable to read/parse/find metadata.\n");
+        fprintf(stderr, "metadata: Unable to read/parse/find metadata.\n");
         return FAIL_FAIL;
     }
 
     src_m.len = metadata_get_img_size(&meta);
+
+    /* We reading blank slot */
+    if (src_m.len == 0 || src_m.len > IMAGE_SIZE) {
+        fprintf(stderr, "metadata: slot size mismatch. Size is 0 or bigger than allowed size.");
+        return FAIL_READ;
+    }
 
     if (export_file_name[0] == '-' && export_file_name[1] == '\0')
     {
@@ -159,7 +165,7 @@ enum RET_CODES images_simple_format(int fd, const unsigned int slot)
 {
     const uint64_t offset = slot * MAGIC_OFFSET;
     fat_12_table_buff_t fat_buff;
-    const struct metadata meta = metadata_init();
+    struct metadata meta = metadata_init();
     enum RET_CODES rc;
 
     init_fat12_blank_floppy(&fat_buff);
@@ -171,6 +177,7 @@ enum RET_CODES images_simple_format(int fd, const unsigned int slot)
         return rc;
     }
 
+    meta.img_size = IMAGE_SIZE;
     /* Wipe metadata */
     metadata_write(fd, slot, &meta);
 
