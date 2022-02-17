@@ -128,7 +128,7 @@ enum RET_CODES images_export_image(int fd_src, const unsigned int slot, const ch
 
     /* We reading blank slot */
     if (src_m.len == 0 || src_m.len > IMAGE_SIZE) {
-        fprintf(stderr, "metadata: slot size mismatch. Size is 0 or bigger than allowed size.");
+        fprintf(stderr, "metadata: slot size mismatch. Size is 0 or bigger than allowed size.\n");
         return FAIL_READ;
     }
 
