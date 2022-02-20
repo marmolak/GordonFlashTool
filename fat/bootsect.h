@@ -81,22 +81,4 @@ union bootsector {
 	struct bootsector710 bs710;
 } __attribute__((packed));
 
-#if 0
-/*
- * Shorthand for fields in the bpb.
- */
-#define	bsBytesPerSec	bsBPB.bpbBytesPerSec
-#define	bsSectPerClust	bsBPB.bpbSectPerClust
-#define	bsResSectors	bsBPB.bpbResSectors
-#define	bsFATS		bsBPB.bpbFATS
-#define	bsRootDirEnts	bsBPB.bpbRootDirEnts
-#define	bsSectors	bsBPB.bpbSectors
-#define	bsMedia		bsBPB.bpbMedia
-#define	bsFATsecs	bsBPB.bpbFATsecs
-#define	bsSectPerTrack	bsBPB.bpbSectPerTrack
-#define	bsHeads		bsBPB.bpbHeads
-#define	bsHiddenSecs	bsBPB.bpbHiddenSecs
-#define	bsHugeSectors	bsBPB.bpbHugeSectors
-#endif
-
 #endif /* !_FS_MSDOSFS_BOOTSECT_H_ */
