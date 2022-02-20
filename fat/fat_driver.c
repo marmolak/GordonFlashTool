@@ -3,6 +3,7 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include "cassert.h"
 #include "fat/fat_driver.h"
 #include "fat/fat.h"
 #include "fat/bpb.h"
@@ -74,6 +75,8 @@ static struct bootsector33 init_blank_fat_33(void)
     };
 
 #ifdef BOOT_CODE
+    STATIC_ASSERT(sizeof(boot_code) <= sizeof(boot_sector.bsBootCode), Boot_code_is_too_big_to_fit);
+
     memcpy(boot_sector.bsBootCode, (const void *) boot_code, sizeof(boot_code));
 #endif
 
