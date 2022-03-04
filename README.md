@@ -7,6 +7,13 @@ Toolset for Gotek SFR1M44-U100 formatted usb flash drives.
 - Compute checksum for each image.
 - Tested to work (and compile) on ppc64 MacOS X 10.4.
 
+## How to install on Fedora
+
+Under root:
+
+`dnf copr enable hackr/GordonFlashTool`
+
+`dnf install gordon-flash-tool`
 
 ## How to compile
 
