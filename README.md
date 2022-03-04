@@ -9,6 +9,8 @@ Toolset for Gotek SFR1M44-U100 formatted usb flash drives.
 
 ## How to install on Fedora
 
+[copr link](https://copr.fedorainfracloud.org/coprs/hackr/GordonFlashTool/)
+
 Under root:
 
 `dnf copr enable hackr/GordonFlashTool`
