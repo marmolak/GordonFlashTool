@@ -11,8 +11,13 @@ DEBUG_FLAGS := -O0 -ggdb3 -Weverything $(COMMON_FLAGS)
 
 .PHONY: all
 all:
-	$(CC) $(CFLAGS) $(RELEASE_FLAGS) -c $(files)
-	$(CC) $(CFLAGS) $(RELEASE_FLAGS) -o gordon $(objects)
+	$(CC) $(CFLAGS) -g $(RELEASE_FLAGS) -c $(files)
+	$(CC) $(CFLAGS) -g $(RELEASE_FLAGS) -o gordon $(objects)
+
+.PHONY: install
+install: all
+	install -d $(DESTDIR)$(PREFIX)/usr/bin/
+	install -m 0755 gordon $(DESTDIR)$(PREFIX)/usr/bin/gordon
 
 .PHONY: debug
 debug:
