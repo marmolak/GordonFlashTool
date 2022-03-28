@@ -12,11 +12,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
-#include <inttypes.h>
 
 #include "images.h"
 #include "metadata.h"
 #include "file_dev_ops.h"
+#include "mount.h"
 
 
 static enum RET_CODES parse_fat(const int fd)
@@ -83,7 +83,7 @@ static enum RET_CODES parse_slot(const int fd, unsigned int slot)
 
 static void usage(void)
 {
-	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file'] [-e 'export_file'] [-h] [-f]\n");
+	fprintf(stderr, "Usage: gordon -d image_file|block_device [-s slot] [-w 'short label'] [-i 'input_file'] [-e 'export_file'] [-h] [-m] [-f]\n");
 }
 
 static void help(void)
@@ -113,6 +113,7 @@ int main(int argc, char **argv)
 	bool write_mode = false;
 	bool write_meta_short_label = false;
     bool format_slot = false;
+    bool mount_slot_arg = false;
 
 	char *metadata_short_label_p = NULL;
     char *export_file_name_p = NULL;
@@ -134,7 +135,7 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-	while ((opt = getopt(argc, argv, "s:d:w:i:e:hf")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:w:i:e:hfm")) != -1) {
 		switch (opt) {
 		case 'w':
 			write_mode = true;
@@ -178,6 +179,10 @@ int main(int argc, char **argv)
             format_slot = true;
             break;
 
+        case 'm':
+            mount_slot_arg = true;
+            break;
+
 		default: /* '?' */
 			usage();
             return EXIT_SUCCESS;
@@ -207,6 +212,11 @@ int main(int argc, char **argv)
 
 	/* Limit is 0-999 slots on real device */
 	potential_num_of_drives = (unsigned int) fd_size / MAGIC_OFFSET;
+    if (potential_num_of_drives == 0) {
+        fprintf(stderr, "Number of drives is 0. This is not supported. There is no space for metadata.");
+        return FAIL_FAIL;
+    }
+
 	if (potential_num_of_drives < GOTEK_MAX_FDDS) {
 		num_of_fdds = potential_num_of_drives;
 	}
@@ -216,6 +226,17 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Maximum number of slots is %u. Allowed values 0 to %u.\n", num_of_fdds - 1, num_of_fdds - 1);
 		return EXIT_FAILURE;
 	}
+
+    if (mount_slot_arg) {
+        if (slot == UINT_MAX) {
+            fprintf(stderr, "You need to specify slot number, via -s switch, to mount.\n");
+            return EXIT_FAILURE;
+        }
+
+        /* Should not return - execve is called */
+        rc = mount_slot(fd, slot, image_name_p);
+        return rc;
+    }
 
     if (format_slot) {
         if (slot == UINT_MAX) {
