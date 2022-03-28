@@ -211,6 +211,12 @@ int main(int argc, char **argv)
 		num_of_fdds = potential_num_of_drives;
 	}
 
+	if (slot != UINT_MAX && slot >= num_of_fdds)
+	{
+		fprintf(stderr, "Maximum number of slots is %u. Allowed values 0 to %u.\n", num_of_fdds - 1, num_of_fdds - 1);
+		return EXIT_FAILURE;
+	}
+
     if (format_slot) {
         if (slot == UINT_MAX) {
             fprintf(stderr, "You need to specify slot number, via -s switch, to format.\n");
@@ -224,13 +230,6 @@ int main(int argc, char **argv)
 
         return EXIT_SUCCESS;
     }
-
-	if (slot != UINT_MAX && slot >= num_of_fdds)
-	{
-		fprintf(stderr, "Maximum number of slots is %u. Allowed values 0 to %u.\n", num_of_fdds - 1, num_of_fdds - 1);
-		return EXIT_FAILURE;
-	}
-
 
     if (export_file_name_p != NULL)
     {
