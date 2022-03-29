@@ -1,5 +1,5 @@
 Name: gordon-flash-tool
-Version: 8
+Version: 9
 Release: 0%{?dist}
 Summary: Toolset for Gotek SFR1M44-U100 formatted usb flash drives.
 
