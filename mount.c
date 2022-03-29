@@ -40,6 +40,32 @@ static enum RET_CODES mount_slot_os_x(int fd, const unsigned int slot, const cha
 
     return FAIL_FAIL;
 }
+
+#elif defined(__linux__)
+
+/* Just call mount with options - this saves tons of code cause loopback devices 
+    are tricky on Linux sometimes (no loop-control provided etc). */
+static enum RET_CODES mount_slot_linux(int fd, const unsigned int slot, const char *const image_name)
+{
+    const uint64_t offset = slot * MAGIC_OFFSET;
+    int ret;
+    char buffer[64] = { '\0' };
+
+    close(fd);
+
+    snprintf(buffer, sizeof(buffer), "loop,offset=%" PRIu64 , offset);
+
+    /* it's stupid and only /media dir is supported for now */
+    ret = execlp("mount", "mount", "-o", buffer, image_name, "/media", (char *) NULL);
+
+    if (ret == -1) {
+        fprintf(stderr, "Unable to execute hdiutil.\n");
+        return FAIL_FAIL;
+    }
+
+    return FAIL_FAIL;
+}
+
 #endif
 
 enum RET_CODES mount_slot(int fd, const unsigned int slot, const char *const image_name)
@@ -47,6 +73,9 @@ enum RET_CODES mount_slot(int fd, const unsigned int slot, const char *const ima
     enum RET_CODES rc;
 #if defined(__APPLE__) && defined(__MACH__)
     rc = mount_slot_os_x(fd, slot, image_name);
+    return rc;
+#elif defined(__linux__)
+    rc = mount_slot_linux(fd, slot, image_name);
     return rc;
 #endif
 
