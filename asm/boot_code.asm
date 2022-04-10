@@ -2,11 +2,14 @@ bits 16
 cpu 8086
 org 0x7c00 ; boot code
 
+%ifdef BOOTTEST
 start:
-	jmp do
+	jmp start_real
 	nop
 	times 32-($-$$) db 0
-do:
+%endif
+
+start_real:
     nop
 
     ; disable ray
@@ -62,7 +65,9 @@ text_addr:
 text:
     db ' Made by Gordon Flash Tool '
 
-	;times 510-($-$$) db 0
+%ifdef BOOTTEST
+	times 510-($-$$) db 0
 	; This is our boot sector signature, without it,
 	; the BIOS will not load our bootloader into memory.
-	;dw 0xAA55
+	dw 0xAA55
+%endif
