@@ -1,4 +1,5 @@
 bits 16
+cpu 8086
 org 0x7c00 ; boot code
 
 start:
@@ -7,6 +8,13 @@ start:
 	times 32-($-$$) db 0
 do:
     nop
+
+    ; disable ray
+    mov dx, 0x3D8
+    in al, dx
+    and al, 0x0F7
+    out dx, al
+
     xor ax, ax
     mov ss, ax
     sti
@@ -20,7 +28,7 @@ do:
 	mov es, ax
 	mov ax, 0x4020
 	mov cx, 80 * 25
-	xor di, di 
+	xor di, di
 	rep stosw
 
 	; write message
@@ -36,6 +44,11 @@ l1:
     inc bx
 	stosw
     loop l1
+
+    mov dx, 0x3D8
+    in al, dx
+    or al, 0x8
+    out dx, al
 
 h:  cli
 	hlt ; waits for interrupts so we just ban them
