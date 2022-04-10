@@ -50,9 +50,12 @@ l1:
     or al, 0x8
     out dx, al
 
-h:  cli
-	hlt ; waits for interrupts so we just ban them
-    jmp h
+    ; wait for key
+    xor ax, ax
+    int 0x16
+
+    ; then try reboot
+    int 0x19
 
 text_addr:
     call r1
