@@ -1,5 +1,7 @@
 .PHONY: all
 all: boot_code.asm
+	rm -rf boot_code
+	rm -rf boot_code_generated.h
 	nasm -f bin -o boot_code boot_code.asm
 	xxd -i boot_code > boot_code_generated.h
 	rm -rf boot_code
